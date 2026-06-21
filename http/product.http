@@ -1,0 +1,31 @@
+### Create product success
+POST {{host}}/api/products
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "code": "P-1000",
+  "name": "Basic T-Shirt",
+  "price": 19900,
+  "options": [
+    {
+      "name": "Black / M",
+      "type": "COLOR"
+    },
+    {
+      "name": "White / L",
+      "type": "SIZE"
+    }
+  ]
+}
+
+### Create product duplicate code
+POST {{host}}/api/products
+Content-Type: application/json
+
+{
+  "code": "P-1000",
+  "name": "Duplicate Product",
+  "price": 10000,
+  "options": []
+}

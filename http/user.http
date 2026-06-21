@@ -1,0 +1,29 @@
+### Sign up success
+POST {{host}}/api/users/signup
+Content-Type: application/json
+
+{
+  "username": "alice",
+  "nickname": "Alice",
+  "password": "password123!"
+}
+
+### Sign up duplicate username
+POST {{host}}/api/users/signup
+Content-Type: application/json
+
+{
+  "username": "alice",
+  "nickname": "Alice Two",
+  "password": "password123!"
+}
+
+### Sign up validation failure
+POST {{host}}/api/users/signup
+Content-Type: application/json
+
+{
+  "username": "",
+  "nickname": "NoUsername",
+  "password": "password123!"
+}
