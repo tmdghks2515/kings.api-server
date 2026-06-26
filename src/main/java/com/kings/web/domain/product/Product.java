@@ -1,14 +1,9 @@
 package com.kings.web.domain.product;
 
 import com.kings.web.domain.audit.BaseAuditableEntity;
+import com.kings.web.domain.product.category.ProductCategory;
 import com.kings.web.domain.product.option.ProductOption;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -32,6 +27,9 @@ public class Product extends BaseAuditableEntity {
 
     @Column
     private Double price;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private ProductCategory category;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ProductOption> options = new ArrayList<>();
