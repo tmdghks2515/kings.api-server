@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -20,6 +21,8 @@ import java.util.Optional;
 public class AuthContextFilter extends OncePerRequestFilter {
 
     private static final String BEARER_PREFIX = "Bearer ";
+    private static final String API_PATH_PREFIX = "/api/";
+    private static final String LOGIN_PATH = "/api/auth/login";
 
     private final JwtTokenProvider jwtTokenProvider;
 
@@ -31,8 +34,14 @@ public class AuthContextFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
         try {
             try {
-                resolveAuthPrincipal(request)
-                        .ifPresent(AuthContext::set);
+                var authPrincipal = resolveAuthPrincipal(request);
+
+                if (requiresAuthentication(request) && authPrincipal.isEmpty()) {
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "missing authorization header");
+                    return;
+                }
+
+                authPrincipal.ifPresent(AuthContext::set);
             } catch (IllegalArgumentException exception) {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "invalid jwt token");
                 return;
@@ -42,6 +51,12 @@ public class AuthContextFilter extends OncePerRequestFilter {
         } finally {
             AuthContext.clear();
         }
+    }
+
+    private boolean requiresAuthentication(HttpServletRequest request) {
+        return request.getRequestURI().startsWith(API_PATH_PREFIX)
+                && !LOGIN_PATH.equals(request.getRequestURI())
+                && !HttpMethod.OPTIONS.matches(request.getMethod());
     }
 
     private Optional<AuthPrincipal> resolveAuthPrincipal(HttpServletRequest request) {

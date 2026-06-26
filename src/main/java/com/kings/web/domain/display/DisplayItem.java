@@ -34,21 +34,21 @@ public class DisplayItem extends BaseAuditableEntity {
     private DisplayItemType type;
 
     @Column(name = "sort_order", nullable = false)
-    private int order;
+    private int sortOrder;
 
-    private DisplayItem(String name, DisplayItemType type, int order) {
+    private DisplayItem(String name, DisplayItemType type, int sortOrder) {
         this.name = Objects.requireNonNull(name, "name must not be null");
         this.type = Objects.requireNonNull(type, "type must not be null");
-        this.order = order;
+        this.sortOrder = sortOrder;
     }
 
-    public static DisplayItem create(String name, DisplayItemType type, int order) {
-        return new DisplayItem(name, type, order);
+    public static DisplayItem create(String name, DisplayItemType type, int sortOrder) {
+        return new DisplayItem(name, type, sortOrder);
     }
 
-    public void update(String name, DisplayItemType type, int order) {
+    public void update(String name, DisplayItemType type, int sortOrder) {
         this.name = Objects.requireNonNull(name, "name must not be null");
         this.type = Objects.requireNonNull(type, "type must not be null");
-        this.order = order;
+        this.sortOrder = sortOrder;
     }
 }

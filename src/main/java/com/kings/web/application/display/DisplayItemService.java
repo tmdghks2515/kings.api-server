@@ -21,7 +21,7 @@ public class DisplayItemService {
     public Long create(DisplayItemCommand command) {
         validate(command);
 
-        var displayItem = DisplayItem.create(command.name(), command.type(), command.order());
+        var displayItem = DisplayItem.create(command.name(), command.type(), command.sortOrder());
 
         return displayItemRepository.save(displayItem).getId();
     }
@@ -44,7 +44,7 @@ public class DisplayItemService {
         validate(command);
 
         var displayItem = getById(id);
-        displayItem.update(command.name(), command.type(), command.order());
+        displayItem.update(command.name(), command.type(), command.sortOrder());
     }
 
     @Transactional
@@ -64,8 +64,8 @@ public class DisplayItemService {
         if (command.type() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "type is required");
         }
-        if (command.order() < 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "order must be greater than or equal to 0");
+        if (command.sortOrder() < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "sortOrder must be greater than or equal to 0");
         }
     }
 }

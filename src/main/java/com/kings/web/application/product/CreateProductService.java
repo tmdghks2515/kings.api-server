@@ -1,7 +1,14 @@
 package com.kings.web.application.product;
 
+import com.kings.web.domain.file.FileResource;
+import com.kings.web.domain.file.FileResourceRepository;
 import com.kings.web.domain.product.Product;
+import com.kings.web.domain.product.ProductCode;
 import com.kings.web.domain.product.ProductRepository;
+import com.kings.web.domain.product.category.ProductCategory;
+import com.kings.web.domain.product.category.ProductCategoryRepository;
+import com.kings.web.domain.product.image.ProductDetailImage;
+import com.kings.web.domain.product.image.ProductImage;
 import com.kings.web.domain.product.option.ProductOption;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -12,17 +19,17 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class CreateProductService {
 
     private final ProductRepository productRepository;
+    private final ProductCategoryRepository productCategoryRepository;
+    private final FileResourceRepository fileResourceRepository;
 
     @Transactional
-    public void create(CreateProductCommand command) {
+    public void create(ProductCommand command) {
         validate(command);
 
         if (productRepository.existsByCode(command.code())) {
@@ -32,7 +39,8 @@ public class CreateProductService {
         var product = Product.create(
                 command.code(),
                 command.name(),
-                command.price()
+                command.price(),
+                findCategory(command.categoryId())
         );
 
         for (var optionCommand : normalizedOptions(command.options())) {
@@ -43,13 +51,25 @@ public class CreateProductService {
                     optionCommand.type()
             ));
         }
+        for (var image : toImages(product, normalizedImages(command.images()))) {
+            product.addImage(image);
+        }
+        for (var detailImage : toDetailImages(product, normalizedFileResourceIds(command.detailImages()))) {
+            product.addDetailImage(detailImage);
+        }
 
         productRepository.save(product);
     }
 
-    private void validate(CreateProductCommand command) {
+    private void validate(ProductCommand command) {
+        if (command == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "product is required");
+        }
         if (!StringUtils.hasText(command.code())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "code is required");
+        }
+        if (!ProductCode.isValid(command.code())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "code must contain only letters, numbers, hyphen, or underscore");
         }
         if (!StringUtils.hasText(command.name())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name is required");
@@ -57,6 +77,9 @@ public class CreateProductService {
         if (command.price() != null && command.price() < 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "price must be greater than or equal to 0");
         }
+
+        validateImages(normalizedImages(command.images()));
+        validateFileResourceIds(normalizedFileResourceIds(command.detailImages()), "detailImages");
 
         var optionNames = new HashSet<String>();
         for (var option : normalizedOptions(command.options())) {
@@ -75,9 +98,86 @@ public class CreateProductService {
         }
     }
 
-    private List<CreateProductCommand.CreateProductOptionCommand> normalizedOptions(
-            List<CreateProductCommand.CreateProductOptionCommand> options
+    private ProductCategory findCategory(Long categoryId) {
+        if (categoryId == null) {
+            return null;
+        }
+
+        return productCategoryRepository.findById(categoryId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "category not found"));
+    }
+
+    private List<ProductCommand.ProductOptionCommand> normalizedOptions(
+            List<ProductCommand.ProductOptionCommand> options
     ) {
         return options == null ? List.of() : options;
+    }
+
+    private List<Long> normalizedFileResourceIds(List<Long> fileResourceIds) {
+        return fileResourceIds == null ? List.of() : fileResourceIds;
+    }
+
+    private void validateFileResourceIds(List<Long> fileResourceIds, String fieldName) {
+        if (fileResourceIds.stream().anyMatch(fileResourceId -> fileResourceId == null || fileResourceId <= 0)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " must contain valid file ids");
+        }
+        if (new HashSet<>(fileResourceIds).size() != fileResourceIds.size()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " must be unique");
+        }
+    }
+
+    private List<ProductImage> toImages(
+            Product product,
+            List<ProductCommand.ProductImageCommand> imageCommands
+    ) {
+        return imageCommands.stream()
+                .map(imageCommand -> ProductImage.create(
+                        product,
+                        findFileResource(imageCommand.fileResourceId()),
+                        imageCommands.indexOf(imageCommand) + 1,
+                        imageCommand.main()
+                ))
+                .toList();
+    }
+
+    private List<ProductDetailImage> toDetailImages(Product product, List<Long> fileResourceIds) {
+        return fileResourceIds.stream()
+                .map(fileResourceId -> ProductDetailImage.create(
+                        product,
+                        findFileResource(fileResourceId),
+                        fileResourceIds.indexOf(fileResourceId) + 1
+                ))
+                .toList();
+    }
+
+    private FileResource findFileResource(Long fileResourceId) {
+        return fileResourceRepository.findById(fileResourceId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "file not found"));
+    }
+
+    private List<ProductCommand.ProductImageCommand> normalizedImages(
+            List<ProductCommand.ProductImageCommand> images
+    ) {
+        return images == null ? List.of() : images;
+    }
+
+    private void validateImages(List<ProductCommand.ProductImageCommand> images) {
+        if (images.stream().anyMatch(image -> image == null || image.fileResourceId() == null || image.fileResourceId() <= 0)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "images must contain valid file ids");
+        }
+
+        var fileResourceIds = images.stream()
+                .map(ProductCommand.ProductImageCommand::fileResourceId)
+                .toList();
+        if (new HashSet<>(fileResourceIds).size() != fileResourceIds.size()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "images must be unique");
+        }
+
+        var mainCount = images.stream()
+                .filter(ProductCommand.ProductImageCommand::main)
+                .count();
+        if (mainCount > 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "main image must be unique");
+        }
     }
 }

@@ -4,8 +4,6 @@ import com.kings.web.application.display.DisplayItemCommand;
 import com.kings.web.application.display.DisplayItemData;
 import com.kings.web.application.display.DisplayItemService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,9 +23,8 @@ public class DisplayItemController {
     private final DisplayItemService displayItemService;
 
     @PostMapping
-    public ResponseEntity<Long> create(@RequestBody DisplayItemCommand command) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(displayItemService.create(command));
+    public Long create(@RequestBody DisplayItemCommand command) {
+        return displayItemService.create(command);
     }
 
     @GetMapping
@@ -41,16 +38,12 @@ public class DisplayItemController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Void> update(@PathVariable Long id, @RequestBody DisplayItemCommand command) {
+    public void update(@PathVariable Long id, @RequestBody DisplayItemCommand command) {
         displayItemService.update(id, command);
-
-        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public void delete(@PathVariable Long id) {
         displayItemService.delete(id);
-
-        return ResponseEntity.noContent().build();
     }
 }

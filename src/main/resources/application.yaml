@@ -33,6 +33,10 @@ spring:
       max-file-size: 100MB
       max-request-size: 100MB
 
+file:
+  storage:
+    path: ${FILE_STORAGE_PATH:./files}
+
 logging:
   level:
     org.hibernate.SQL: debug

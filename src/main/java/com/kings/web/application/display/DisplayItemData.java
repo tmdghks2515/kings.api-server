@@ -7,14 +7,14 @@ public record DisplayItemData(
         Long id,
         String name,
         DisplayItemType type,
-        int order
+        int sortOrder
 ) {
     public static DisplayItemData from(DisplayItem displayItem) {
         return new DisplayItemData(
                 displayItem.getId(),
                 displayItem.getName(),
                 displayItem.getType(),
-                displayItem.getOrder()
+                displayItem.getSortOrder()
         );
     }
 }

@@ -50,6 +50,11 @@ public class ProductOption extends BaseAuditableEntity {
         return new ProductOption(product, name, price, type);
     }
 
+    public void update(Double price, ProductOptionType type) {
+        this.price = price;
+        this.type = Objects.requireNonNull(type, "type must not be null");
+    }
+
     public String getProductCode() {
         return id == null ? null : id.productCode();
     }

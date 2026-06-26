@@ -11,6 +11,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -64,10 +65,18 @@ public class ProductCategoryService {
     }
 
     @Transactional
-    public void delete(Long id) {
-        var productCategory = getById(id);
+    public void deleteAll(ProductCategoryDeleteCommand command) {
+        var categoryIds = validateDeleteCommand(command);
+        var selectedCategoryIds = Set.copyOf(categoryIds);
+        var productCategories = categoryIds.stream()
+                .map(this::getById)
+                .toList();
 
-        deleteWithChildren(productCategory);
+        for (var productCategory : productCategories) {
+            if (!hasSelectedAncestor(productCategory, selectedCategoryIds)) {
+                deleteWithChildren(productCategory);
+            }
+        }
     }
 
     private ProductCategory getById(Long id) {
@@ -174,6 +183,36 @@ public class ProductCategoryService {
             if (child.getId().equals(candidateCategoryId) || isDescendant(child.getId(), candidateCategoryId)) {
                 return true;
             }
+        }
+
+        return false;
+    }
+
+    private List<Long> validateDeleteCommand(ProductCategoryDeleteCommand command) {
+        if (command == null || command.categoryIds() == null || command.categoryIds().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "categoryIds is required");
+        }
+
+        var categoryIds = command.categoryIds();
+        if (categoryIds.stream().anyMatch(Objects::isNull)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "categoryId is required");
+        }
+        if (new HashSet<>(categoryIds).size() != categoryIds.size()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "categoryIds must be unique");
+        }
+
+        return categoryIds;
+    }
+
+    private boolean hasSelectedAncestor(ProductCategory productCategory, Set<Long> selectedCategoryIds) {
+        var parentCategory = productCategory.getParentCategory();
+
+        while (parentCategory != null) {
+            if (selectedCategoryIds.contains(parentCategory.getId())) {
+                return true;
+            }
+
+            parentCategory = parentCategory.getParentCategory();
         }
 
         return false;
