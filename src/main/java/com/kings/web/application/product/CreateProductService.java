@@ -2,6 +2,8 @@ package com.kings.web.application.product;
 
 import com.kings.web.domain.file.FileResource;
 import com.kings.web.domain.file.FileResourceRepository;
+import com.kings.web.domain.brand.Brand;
+import com.kings.web.domain.brand.BrandRepository;
 import com.kings.web.domain.product.Product;
 import com.kings.web.domain.product.ProductCode;
 import com.kings.web.domain.product.ProductRepository;
@@ -26,6 +28,7 @@ public class CreateProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final BrandRepository brandRepository;
     private final FileResourceRepository fileResourceRepository;
 
     @Transactional
@@ -40,7 +43,8 @@ public class CreateProductService {
                 command.code(),
                 command.name(),
                 command.price(),
-                findCategory(command.categoryId())
+                findCategory(command.categoryId()),
+                findBrand(command.brandId())
         );
 
         for (var optionCommand : normalizedOptions(command.options())) {
@@ -105,6 +109,15 @@ public class CreateProductService {
 
         return categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "category not found"));
+    }
+
+    private Brand findBrand(Long brandId) {
+        if (brandId == null) {
+            return null;
+        }
+
+        return brandRepository.findById(brandId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "brand not found"));
     }
 
     private List<ProductCommand.ProductOptionCommand> normalizedOptions(

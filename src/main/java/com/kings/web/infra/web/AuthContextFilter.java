@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Optional;
 
 @Component
@@ -22,7 +23,10 @@ public class AuthContextFilter extends OncePerRequestFilter {
 
     private static final String BEARER_PREFIX = "Bearer ";
     private static final String API_PATH_PREFIX = "/api/";
-    private static final String LOGIN_PATH = "/api/auth/login";
+    private static final String[] NO_AUTHENTICATION_PATHS = {
+            "/api/auth/login",
+            "/api/users/signup"
+    };
 
     private final JwtTokenProvider jwtTokenProvider;
 
@@ -55,7 +59,7 @@ public class AuthContextFilter extends OncePerRequestFilter {
 
     private boolean requiresAuthentication(HttpServletRequest request) {
         return request.getRequestURI().startsWith(API_PATH_PREFIX)
-                && !LOGIN_PATH.equals(request.getRequestURI())
+                && Arrays.stream(NO_AUTHENTICATION_PATHS).noneMatch(request.getRequestURI()::equals)
                 && !HttpMethod.OPTIONS.matches(request.getMethod());
     }
 

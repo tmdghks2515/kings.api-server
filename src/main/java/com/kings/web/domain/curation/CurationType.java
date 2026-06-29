@@ -1,6 +1,6 @@
-package com.kings.web.domain.display;
+package com.kings.web.domain.curation;
 
-public enum DisplayItemType {
+public enum CurationType {
     MAIN_BANNER,
     NORMAL_BANNER,
     CATEGORIES,

@@ -14,6 +14,8 @@ public record ProductData(
         Double price,
         Long categoryId,
         String categoryName,
+        Long brandId,
+        String brandName,
         int optionCount,
         List<ProductOptionData> options,
         List<ProductImageData> images,
@@ -21,6 +23,7 @@ public record ProductData(
 ) {
     public static ProductData from(Product product) {
         var category = product.getCategory();
+        var brand = product.getBrand();
         var options = product.getOptions()
                 .stream()
                 .map(ProductOptionData::from)
@@ -40,6 +43,8 @@ public record ProductData(
                 product.getPrice(),
                 category == null ? null : category.getId(),
                 category == null ? null : category.getName(),
+                brand == null ? null : brand.getId(),
+                brand == null ? null : brand.getName(),
                 options.size(),
                 options,
                 images,

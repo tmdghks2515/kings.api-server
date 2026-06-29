@@ -1,9 +1,9 @@
 package com.kings.web.infra.presentation.product.category;
 
-import com.kings.web.application.product.category.CategoryCommand;
-import com.kings.web.application.product.category.CategoryData;
-import com.kings.web.application.product.category.CategoryDeleteCommand;
-import com.kings.web.application.product.category.CategoryService;
+import com.kings.web.application.category.CategoryCommand;
+import com.kings.web.application.category.CategoryData;
+import com.kings.web.application.category.CategoryDeleteCommand;
+import com.kings.web.application.category.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

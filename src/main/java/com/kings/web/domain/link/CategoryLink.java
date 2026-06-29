@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CategoryLink implements Link {
-    private static final String BASE_PATH = "/categories/%s";
+    private static final String BASE_PATH = "/category/%s";
 
     private String categoryId;
 

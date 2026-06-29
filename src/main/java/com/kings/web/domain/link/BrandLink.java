@@ -10,16 +10,15 @@ import java.nio.charset.StandardCharsets;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductDetailLink implements Link {
+public class BrandLink implements Link {
+    private static final String BASE_PATH = "/brand/%s";
 
-    private static final String BASE_PATH = "/product/%s";
-
-    private String productCode;
+    private String brandId;
 
     @Override
     public String getLink() {
         return BASE_PATH.formatted(
-                UriUtils.encodePathSegment(productCode, StandardCharsets.UTF_8)
+                UriUtils.encodePathSegment(brandId, StandardCharsets.UTF_8)
         );
     }
 }

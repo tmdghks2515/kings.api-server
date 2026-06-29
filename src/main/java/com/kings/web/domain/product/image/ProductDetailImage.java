@@ -3,14 +3,7 @@ package com.kings.web.domain.product.image;
 import com.kings.web.domain.audit.BaseAuditableEntity;
 import com.kings.web.domain.file.FileResource;
 import com.kings.web.domain.product.Product;
-import jakarta.persistence.Column;
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapsId;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -32,7 +25,7 @@ public class ProductDetailImage extends BaseAuditableEntity {
     private Product product;
 
     @MapsId("fileResourceId")
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "file_resource_id", nullable = false, updatable = false)
     private FileResource fileResource;
 

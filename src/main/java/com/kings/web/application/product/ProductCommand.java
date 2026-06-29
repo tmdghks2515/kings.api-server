@@ -9,6 +9,7 @@ public record ProductCommand(
         String name,
         Double price,
         Long categoryId,
+        Long brandId,
         List<ProductOptionCommand> options,
         List<ProductImageCommand> images,
         List<Long> detailImages

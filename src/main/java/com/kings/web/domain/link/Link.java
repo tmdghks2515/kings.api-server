@@ -7,6 +7,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = ProductDetailLink.class, name = "ProductDetailLink"),
+        @JsonSubTypes.Type(value = CategoryLink.class, name = "CategoryLink"),
+        @JsonSubTypes.Type(value = BrandLink.class, name = "BrandLink"),
 })
 public interface Link {
     String getLink();

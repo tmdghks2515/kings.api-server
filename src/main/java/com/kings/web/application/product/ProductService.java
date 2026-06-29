@@ -1,6 +1,8 @@
 package com.kings.web.application.product;
 
 import com.kings.web.application.file.FileStorage;
+import com.kings.web.domain.brand.Brand;
+import com.kings.web.domain.brand.BrandRepository;
 import com.kings.web.domain.file.FileResource;
 import com.kings.web.domain.file.FileResourceRepository;
 import com.kings.web.domain.product.Product;
@@ -29,6 +31,7 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final BrandRepository brandRepository;
     private final FileResourceRepository fileResourceRepository;
     private final FileStorage fileStorage;
 
@@ -50,7 +53,7 @@ public class ProductService {
         validateUpdateCommand(code, command);
 
         var product = getByCode(code);
-        product.update(command.name(), command.price(), findCategory(command.categoryId()));
+        product.update(command.name(), command.price(), findCategory(command.categoryId()), findBrand(command.brandId()));
         product.replaceOptions(toOptions(product, normalizedOptions(command.options())));
         product.replaceImages(toImages(product, normalizedImages(command.images())));
         product.replaceDetailImages(toDetailImages(product, normalizedFileResourceIds(command.detailImages())));
@@ -94,6 +97,15 @@ public class ProductService {
 
         return categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "category not found"));
+    }
+
+    private Brand findBrand(Long brandId) {
+        if (brandId == null) {
+            return null;
+        }
+
+        return brandRepository.findById(brandId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "brand not found"));
     }
 
     private void validateUpdateCommand(String code, ProductCommand command) {

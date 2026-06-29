@@ -1,4 +1,4 @@
-package com.kings.web.application.product.category;
+package com.kings.web.application.category;
 
 import java.util.List;
 
