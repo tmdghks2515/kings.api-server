@@ -13,6 +13,6 @@ import java.util.List;
 @Builder
 @Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class DisplayItemMainBannerDetail implements DisplayItemDetail {
-    private List<DisplayItemMainBannerItem> items;
+public class MainBannerDetail implements DisplayItemDetail {
+    private List<MainBannerItem> items;
 }

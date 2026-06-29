@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = DisplayItemMainBannerDetail.class, name = "MainBannerDetail"),
+        @JsonSubTypes.Type(value = MainBannerDetail.class, name = "MainBannerDetail"),
 })
 public interface DisplayItemDetail {
 }

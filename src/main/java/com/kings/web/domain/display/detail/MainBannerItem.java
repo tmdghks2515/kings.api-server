@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.kings.web.domain.link.Link;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record DisplayItemMainBannerItem(
+public record MainBannerItem(
         String imageUrl,
         Link link,
         String title,
