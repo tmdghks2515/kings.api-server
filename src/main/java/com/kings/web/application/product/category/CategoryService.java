@@ -1,7 +1,7 @@
 package com.kings.web.application.product.category;
 
-import com.kings.web.domain.product.category.ProductCategory;
-import com.kings.web.domain.product.category.ProductCategoryRepository;
+import com.kings.web.domain.category.Category;
+import com.kings.web.domain.category.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -18,39 +18,39 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class ProductCategoryService {
+public class CategoryService {
 
-    private final ProductCategoryRepository productCategoryRepository;
+    private final CategoryRepository categoryRepository;
 
     @Transactional
-    public Long create(ProductCategoryCommand command) {
+    public Long create(CategoryCommand command) {
         validate(command);
 
         var parentCategory = findParentCategory(command.parentCategoryId());
-        var productCategory = createCategory(command, parentCategory);
+        var category = createCategory(command, parentCategory);
 
-        return productCategory.getId();
+        return category.getId();
     }
 
     @Transactional(readOnly = true)
-    public List<ProductCategoryData> findAll() {
-        return productCategoryRepository.findAll()
+    public List<CategoryData> findAll() {
+        return categoryRepository.findAll()
                 .stream()
-                .filter(productCategory -> productCategory.getParentCategory() == null)
+                .filter(category -> category.getParentCategory() == null)
                 .map(this::toData)
                 .toList();
     }
 
     @Transactional(readOnly = true)
-    public ProductCategoryData findById(Long id) {
+    public CategoryData findById(Long id) {
         return toData(getById(id));
     }
 
     @Transactional
-    public void update(Long id, ProductCategoryCommand command) {
+    public void update(Long id, CategoryCommand command) {
         validate(command);
 
-        var productCategory = getById(id);
+        var category = getById(id);
         var parentCategory = findParentCategory(command.parentCategoryId());
 
         if (parentCategory != null && parentCategory.getId().equals(id)) {
@@ -60,40 +60,40 @@ public class ProductCategoryService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "parent category must not be a child category");
         }
 
-        productCategory.update(command.depth(), command.name(), parentCategory);
-        syncChildren(productCategory, normalizedChildren(command.children()), new HashSet<>(Set.of(id)));
+        category.update(command.depth(), command.name(), parentCategory);
+        syncChildren(category, normalizedChildren(command.children()), new HashSet<>(Set.of(id)));
     }
 
     @Transactional
-    public void deleteAll(ProductCategoryDeleteCommand command) {
+    public void deleteAll(CategoryDeleteCommand command) {
         var categoryIds = validateDeleteCommand(command);
         var selectedCategoryIds = Set.copyOf(categoryIds);
-        var productCategories = categoryIds.stream()
+        var categories = categoryIds.stream()
                 .map(this::getById)
                 .toList();
 
-        for (var productCategory : productCategories) {
-            if (!hasSelectedAncestor(productCategory, selectedCategoryIds)) {
-                deleteWithChildren(productCategory);
+        for (var category : categories) {
+            if (!hasSelectedAncestor(category, selectedCategoryIds)) {
+                deleteWithChildren(category);
             }
         }
     }
 
-    private ProductCategory getById(Long id) {
-        return productCategoryRepository.findById(id)
+    private Category getById(Long id) {
+        return categoryRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "category not found"));
     }
 
-    private ProductCategory findParentCategory(Long parentCategoryId) {
+    private Category findParentCategory(Long parentCategoryId) {
         if (parentCategoryId == null) {
             return null;
         }
 
-        return productCategoryRepository.findById(parentCategoryId)
+        return categoryRepository.findById(parentCategoryId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "parent category not found"));
     }
 
-    private void validate(ProductCategoryCommand command) {
+    private void validate(CategoryCommand command) {
         if (command == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "category is required");
         }
@@ -108,34 +108,34 @@ public class ProductCategoryService {
         }
     }
 
-    private ProductCategory createCategory(ProductCategoryCommand command, ProductCategory parentCategory) {
-        var productCategory = productCategoryRepository.save(
-                ProductCategory.create(command.depth(), command.name(), parentCategory)
+    private Category createCategory(CategoryCommand command, Category parentCategory) {
+        var category = categoryRepository.save(
+                Category.create(command.depth(), command.name(), parentCategory)
         );
 
         for (var child : normalizedChildren(command.children())) {
-            createCategory(child, productCategory);
+            createCategory(child, category);
         }
 
-        return productCategory;
+        return category;
     }
 
     private void syncChildren(
-            ProductCategory parentCategory,
-            List<ProductCategoryCommand> childCommands,
+            Category parentCategory,
+            List<CategoryCommand> childCommands,
             Set<Long> ancestorIds
     ) {
         var childCommandsById = childCommands.stream()
                 .filter(child -> child.id() != null)
                 .collect(Collectors.toMap(
-                        ProductCategoryCommand::id,
+                        CategoryCommand::id,
                         Function.identity(),
                         (left, right) -> {
                             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "child category id must be unique");
                         }
                 ));
 
-        var existingChildren = productCategoryRepository.findByParentCategoryId(parentCategory.getId());
+        var existingChildren = categoryRepository.findByParentCategoryId(parentCategory.getId());
         for (var existingChild : existingChildren) {
             if (!childCommandsById.containsKey(existingChild.getId())) {
                 deleteWithChildren(existingChild);
@@ -161,25 +161,25 @@ public class ProductCategoryService {
         }
     }
 
-    private void deleteWithChildren(ProductCategory productCategory) {
-        for (var child : productCategoryRepository.findByParentCategoryId(productCategory.getId())) {
+    private void deleteWithChildren(Category category) {
+        for (var child : categoryRepository.findByParentCategoryId(category.getId())) {
             deleteWithChildren(child);
         }
 
-        productCategoryRepository.delete(productCategory);
+        categoryRepository.delete(category);
     }
 
-    private ProductCategoryData toData(ProductCategory productCategory) {
-        var children = productCategoryRepository.findByParentCategoryId(productCategory.getId())
+    private CategoryData toData(Category category) {
+        var children = categoryRepository.findByParentCategoryId(category.getId())
                 .stream()
                 .map(this::toData)
                 .toList();
 
-        return ProductCategoryData.from(productCategory, children);
+        return CategoryData.from(category, children);
     }
 
     private boolean isDescendant(Long parentCategoryId, Long candidateCategoryId) {
-        for (var child : productCategoryRepository.findByParentCategoryId(parentCategoryId)) {
+        for (var child : categoryRepository.findByParentCategoryId(parentCategoryId)) {
             if (child.getId().equals(candidateCategoryId) || isDescendant(child.getId(), candidateCategoryId)) {
                 return true;
             }
@@ -188,7 +188,7 @@ public class ProductCategoryService {
         return false;
     }
 
-    private List<Long> validateDeleteCommand(ProductCategoryDeleteCommand command) {
+    private List<Long> validateDeleteCommand(CategoryDeleteCommand command) {
         if (command == null || command.categoryIds() == null || command.categoryIds().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "categoryIds is required");
         }
@@ -204,8 +204,8 @@ public class ProductCategoryService {
         return categoryIds;
     }
 
-    private boolean hasSelectedAncestor(ProductCategory productCategory, Set<Long> selectedCategoryIds) {
-        var parentCategory = productCategory.getParentCategory();
+    private boolean hasSelectedAncestor(Category category, Set<Long> selectedCategoryIds) {
+        var parentCategory = category.getParentCategory();
 
         while (parentCategory != null) {
             if (selectedCategoryIds.contains(parentCategory.getId())) {
@@ -218,7 +218,7 @@ public class ProductCategoryService {
         return false;
     }
 
-    private List<ProductCategoryCommand> normalizedChildren(List<ProductCategoryCommand> children) {
+    private List<CategoryCommand> normalizedChildren(List<CategoryCommand> children) {
         return children == null ? List.of() : children;
     }
 }

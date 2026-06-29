@@ -1,7 +1,7 @@
 package com.kings.web.domain.product;
 
 import com.kings.web.domain.audit.BaseAuditableEntity;
-import com.kings.web.domain.product.category.ProductCategory;
+import com.kings.web.domain.category.Category;
 import com.kings.web.domain.product.image.ProductDetailImage;
 import com.kings.web.domain.product.image.ProductImage;
 import com.kings.web.domain.product.option.ProductOption;
@@ -32,7 +32,7 @@ public class Product extends BaseAuditableEntity {
     private Double price;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    private ProductCategory category;
+    private Category category;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ProductOption> options = new ArrayList<>();
@@ -45,18 +45,18 @@ public class Product extends BaseAuditableEntity {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ProductDetailImage> detailImages = new ArrayList<>();
 
-    private Product(String code, String name, Double price, ProductCategory category) {
+    private Product(String code, String name, Double price, Category category) {
         this.code = Objects.requireNonNull(code, "code must not be null");
         this.name = Objects.requireNonNull(name, "name must not be null");
         this.price = price;
         this.category = category;
     }
 
-    public static Product create(String code, String name, Double price, ProductCategory category) {
+    public static Product create(String code, String name, Double price, Category category) {
         return new Product(code, name, price, category);
     }
 
-    public void update(String name, Double price, ProductCategory category) {
+    public void update(String name, Double price, Category category) {
         this.name = Objects.requireNonNull(name, "name must not be null");
         this.price = price;
         this.category = category;

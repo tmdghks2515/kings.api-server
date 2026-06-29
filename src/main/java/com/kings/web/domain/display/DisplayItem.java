@@ -26,9 +26,6 @@ public class DisplayItem extends BaseAuditableEntity {
     @Column(nullable = false, updatable = false)
     private Long id;
 
-    @Column(nullable = false, length = 100)
-    private String name;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private DisplayItemType type;
@@ -36,18 +33,16 @@ public class DisplayItem extends BaseAuditableEntity {
     @Column(name = "sort_order", nullable = false)
     private int sortOrder;
 
-    private DisplayItem(String name, DisplayItemType type, int sortOrder) {
-        this.name = Objects.requireNonNull(name, "name must not be null");
+    private DisplayItem(DisplayItemType type, int sortOrder) {
         this.type = Objects.requireNonNull(type, "type must not be null");
         this.sortOrder = sortOrder;
     }
 
-    public static DisplayItem create(String name, DisplayItemType type, int sortOrder) {
-        return new DisplayItem(name, type, sortOrder);
+    public static DisplayItem create(DisplayItemType type, int sortOrder) {
+        return new DisplayItem(type, sortOrder);
     }
 
-    public void update(String name, DisplayItemType type, int sortOrder) {
-        this.name = Objects.requireNonNull(name, "name must not be null");
+    public void update(DisplayItemType type, int sortOrder) {
         this.type = Objects.requireNonNull(type, "type must not be null");
         this.sortOrder = sortOrder;
     }

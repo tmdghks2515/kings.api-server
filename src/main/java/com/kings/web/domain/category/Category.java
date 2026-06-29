@@ -1,4 +1,4 @@
-package com.kings.web.domain.product.category;
+package com.kings.web.domain.category;
 
 import com.kings.web.domain.audit.BaseAuditableEntity;
 import jakarta.persistence.Column;
@@ -18,9 +18,9 @@ import java.util.Objects;
 
 @Getter
 @Entity
-@Table(name = "product_category")
+@Table(name = "category")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ProductCategory extends BaseAuditableEntity {
+public class Category extends BaseAuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,19 +35,19 @@ public class ProductCategory extends BaseAuditableEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_category_id")
-    private ProductCategory parentCategory;
+    private Category parentCategory;
 
-    private ProductCategory(int depth, String name, ProductCategory parentCategory) {
+    private Category(int depth, String name, Category parentCategory) {
         this.depth = depth;
         this.name = Objects.requireNonNull(name, "name must not be null");
         this.parentCategory = parentCategory;
     }
 
-    public static ProductCategory create(int depth, String name, ProductCategory parentCategory) {
-        return new ProductCategory(depth, name, parentCategory);
+    public static Category create(int depth, String name, Category parentCategory) {
+        return new Category(depth, name, parentCategory);
     }
 
-    public void update(int depth, String name, ProductCategory parentCategory) {
+    public void update(int depth, String name, Category parentCategory) {
         this.depth = depth;
         this.name = Objects.requireNonNull(name, "name must not be null");
         this.parentCategory = parentCategory;

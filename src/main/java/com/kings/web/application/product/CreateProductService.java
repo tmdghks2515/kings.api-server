@@ -5,8 +5,8 @@ import com.kings.web.domain.file.FileResourceRepository;
 import com.kings.web.domain.product.Product;
 import com.kings.web.domain.product.ProductCode;
 import com.kings.web.domain.product.ProductRepository;
-import com.kings.web.domain.product.category.ProductCategory;
-import com.kings.web.domain.product.category.ProductCategoryRepository;
+import com.kings.web.domain.category.Category;
+import com.kings.web.domain.category.CategoryRepository;
 import com.kings.web.domain.product.image.ProductDetailImage;
 import com.kings.web.domain.product.image.ProductImage;
 import com.kings.web.domain.product.option.ProductOption;
@@ -25,7 +25,7 @@ import java.util.List;
 public class CreateProductService {
 
     private final ProductRepository productRepository;
-    private final ProductCategoryRepository productCategoryRepository;
+    private final CategoryRepository categoryRepository;
     private final FileResourceRepository fileResourceRepository;
 
     @Transactional
@@ -98,12 +98,12 @@ public class CreateProductService {
         }
     }
 
-    private ProductCategory findCategory(Long categoryId) {
+    private Category findCategory(Long categoryId) {
         if (categoryId == null) {
             return null;
         }
 
-        return productCategoryRepository.findById(categoryId)
+        return categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "category not found"));
     }
 

@@ -2,6 +2,9 @@ package com.kings.web.domain.display;
 
 public enum DisplayItemType {
     MAIN_BANNER,
-    PRODUCT_SWIPER,
-    CATEGORY,
+    CATEGORY_BANNER,
+    CATEGORIES,
+    TITLED_PRODUCTS,
+    CATEGORY_PRODUCTS,
+    ;
 }
