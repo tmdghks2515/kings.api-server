@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ImageLink {
-    private String imageUrl;
+    private String imageStorageKey;
     private Link link;
 }

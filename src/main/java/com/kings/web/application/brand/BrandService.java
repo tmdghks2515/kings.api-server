@@ -12,6 +12,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.LinkedHashSet;
 
 @Service
 @RequiredArgsConstructor
@@ -31,22 +32,25 @@ public class BrandService {
         return brandRepository.save(Brand.create(
                 command.name(),
                 command.introduce(),
-                findFileResource(command.logoResourceId(), "logo not found"),
-                findFileResource(command.mainImageResourceId())
+                findStorageKey(command.logoResourceId(), "logo not found"),
+                findStorageKey(command.mainImageResourceId(), "main image not found")
         )).getId();
     }
 
     @Transactional(readOnly = true)
     public List<BrandData> findAll() {
-        return brandRepository.findAll()
-                .stream()
-                .map(BrandData::from)
+        var brands = brandRepository.findAll();
+        var fileResources = findBrandFileResources(brands);
+
+        return brands.stream()
+                .map(brand -> BrandData.from(brand, fileResources))
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public BrandData findById(Long id) {
-        return BrandData.from(getById(id));
+        var brand = getById(id);
+        return BrandData.from(brand, findBrandFileResources(List.of(brand)));
     }
 
     @Transactional
@@ -60,8 +64,8 @@ public class BrandService {
         getById(id).update(
                 command.name(),
                 command.introduce(),
-                findFileResource(command.logoResourceId(), "logo not found"),
-                findFileResource(command.mainImageResourceId())
+                findStorageKey(command.logoResourceId(), "logo not found"),
+                findStorageKey(command.mainImageResourceId(), "main image not found")
         );
     }
 
@@ -75,17 +79,33 @@ public class BrandService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "brand not found"));
     }
 
-    private FileResource findFileResource(Long fileResourceId) {
-        return findFileResource(fileResourceId, "main image not found");
-    }
-
-    private FileResource findFileResource(Long fileResourceId, String notFoundMessage) {
+    private String findStorageKey(Long fileResourceId, String notFoundMessage) {
         if (fileResourceId == null) {
             return null;
         }
 
         return fileResourceRepository.findById(fileResourceId)
+                .map(FileResource::getStorageKey)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, notFoundMessage));
+    }
+
+    private List<FileResource> findBrandFileResources(List<Brand> brands) {
+        var storageKeys = new LinkedHashSet<String>();
+
+        for (var brand : brands) {
+            if (StringUtils.hasText(brand.getLogoStorageKey())) {
+                storageKeys.add(brand.getLogoStorageKey());
+            }
+            if (StringUtils.hasText(brand.getMainImageStorageKey())) {
+                storageKeys.add(brand.getMainImageStorageKey());
+            }
+        }
+
+        if (storageKeys.isEmpty()) {
+            return List.of();
+        }
+
+        return fileResourceRepository.findAllByStorageKeyIn(List.copyOf(storageKeys));
     }
 
     private void validate(BrandCommand command) {

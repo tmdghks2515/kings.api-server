@@ -1,7 +1,6 @@
 package com.kings.web.domain.brand;
 
 import com.kings.web.domain.audit.BaseAuditableEntity;
-import com.kings.web.domain.file.FileResource;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -26,29 +25,27 @@ public class Brand extends BaseAuditableEntity {
     @Column(length = 1000)
     private String introduce;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "logo_resource_id")
-    private FileResource logo;
+    @Column(name = "logo_storage_key", length = 500)
+    private String logoStorageKey;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "main_image_resource_id")
-    private FileResource mainImage;
+    @Column(name = "main_image_storage_key", length = 500)
+    private String mainImageStorageKey;
 
-    private Brand(String name, String introduce, FileResource logo, FileResource mainImage) {
+    private Brand(String name, String introduce, String logoStorageKey, String mainImageStorageKey) {
         this.name = Objects.requireNonNull(name, "name must not be null");
         this.introduce = introduce;
-        this.logo = logo;
-        this.mainImage = mainImage;
+        this.logoStorageKey = logoStorageKey;
+        this.mainImageStorageKey = mainImageStorageKey;
     }
 
-    public static Brand create(String name, String introduce, FileResource logo, FileResource mainImage) {
-        return new Brand(name, introduce, logo, mainImage);
+    public static Brand create(String name, String introduce, String logoStorageKey, String mainImageStorageKey) {
+        return new Brand(name, introduce, logoStorageKey, mainImageStorageKey);
     }
 
-    public void update(String name, String introduce, FileResource logo, FileResource mainImage) {
+    public void update(String name, String introduce, String logoStorageKey, String mainImageStorageKey) {
         this.name = Objects.requireNonNull(name, "name must not be null");
         this.introduce = introduce;
-        this.logo = logo;
-        this.mainImage = mainImage;
+        this.logoStorageKey = logoStorageKey;
+        this.mainImageStorageKey = mainImageStorageKey;
     }
 }

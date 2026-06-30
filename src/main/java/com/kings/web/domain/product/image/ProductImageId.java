@@ -10,7 +10,7 @@ public record ProductImageId(
         @Column(name = "product_code", nullable = false, updatable = false, length = 50)
         String productCode,
 
-        @Column(name = "file_resource_id", nullable = false, updatable = false)
-        Long fileResourceId
+        @Column(name = "storage_key", nullable = false, updatable = false, length = 500)
+        String storageKey
 ) implements Serializable {
 }

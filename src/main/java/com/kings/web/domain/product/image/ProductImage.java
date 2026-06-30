@@ -1,7 +1,6 @@
 package com.kings.web.domain.product.image;
 
 import com.kings.web.domain.audit.BaseAuditableEntity;
-import com.kings.web.domain.file.FileResource;
 import com.kings.web.domain.product.Product;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
@@ -31,27 +30,21 @@ public class ProductImage extends BaseAuditableEntity {
     @JoinColumn(name = "product_code", nullable = false, updatable = false)
     private Product product;
 
-    @MapsId("fileResourceId")
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "file_resource_id", nullable = false, updatable = false)
-    private FileResource fileResource;
-
     @Column(name = "sort_order", nullable = false)
     private int sortOrder;
 
     @Column(nullable = false)
     private boolean main;
 
-    private ProductImage(Product product, FileResource fileResource, int sortOrder, boolean main) {
+    private ProductImage(Product product, String storageKey, int sortOrder, boolean main) {
         this.product = Objects.requireNonNull(product, "product must not be null");
-        this.fileResource = Objects.requireNonNull(fileResource, "fileResource must not be null");
-        this.id = new ProductImageId(product.getCode(), fileResource.getId());
+        this.id = new ProductImageId(product.getCode(), Objects.requireNonNull(storageKey, "storageKey must not be null"));
         this.sortOrder = sortOrder;
         this.main = main;
     }
 
-    public static ProductImage create(Product product, FileResource fileResource, int sortOrder, boolean main) {
-        return new ProductImage(product, fileResource, sortOrder, main);
+    public static ProductImage create(Product product, String storageKey, int sortOrder, boolean main) {
+        return new ProductImage(product, storageKey, sortOrder, main);
     }
 
     public void update(int sortOrder, boolean main) {
@@ -59,7 +52,7 @@ public class ProductImage extends BaseAuditableEntity {
         this.main = main;
     }
 
-    public Long getFileResourceId() {
-        return id == null ? null : id.fileResourceId();
+    public String getStorageKey() {
+        return id == null ? null : id.storageKey();
     }
 }

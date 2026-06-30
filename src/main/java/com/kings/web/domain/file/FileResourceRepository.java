@@ -9,7 +9,11 @@ public interface FileResourceRepository {
 
     Optional<FileResource> findById(Long id);
 
+    List<FileResource> findAllByIdIn(List<Long> ids);
+
     Optional<FileResource> findByStorageKey(String storageKey);
+
+    List<FileResource> findAllByStorageKeyIn(List<String> storageKeys);
 
     boolean existsByStorageKey(String storageKey);
 

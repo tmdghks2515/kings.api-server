@@ -8,6 +8,8 @@ public interface CurationRepository {
 
     List<Curation> findAll();
 
+    List<Curation> findAllByIds(List<Long> ids);
+
     Optional<Curation> findById(Long id);
 
     void delete(Curation curation);

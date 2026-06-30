@@ -8,6 +8,8 @@ import com.kings.web.domain.curation.detail.CurationItem;
 import com.kings.web.domain.curation.detail.MainBannerDetail;
 import com.kings.web.domain.curation.detail.NormalBannerDetail;
 import com.kings.web.domain.curation.detail.TitledProductsDetail;
+import com.kings.web.domain.curation.page.CurationPage;
+import com.kings.web.domain.curation.page.CurationPageRepository;
 import com.kings.web.domain.brand.BrandRepository;
 import com.kings.web.domain.category.CategoryRepository;
 import com.kings.web.domain.link.BrandLink;
@@ -26,12 +28,15 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class CurationService {
 
     private final CurationRepository curationRepository;
+    private final CurationPageRepository curationPageRepository;
     private final BrandRepository brandRepository;
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
@@ -40,7 +45,8 @@ public class CurationService {
     public Long create(CurationCommand command) {
         validate(command);
 
-        var curation = Curation.create(command.type(), command.name(), command.sortOrder(), command.detail());
+        var curationPage = getCurationPage(command);
+        var curation = Curation.create(curationPage, command.type(), command.name(), command.sortOrder(), command.detail());
 
         return curationRepository.save(curation).getId();
     }
@@ -63,8 +69,26 @@ public class CurationService {
     public void update(Long id, CurationCommand command) {
         validate(command);
 
+        var curationPage = getCurationPage(command);
         var curation = getById(id);
-        curation.update(command.type(), command.name(), command.sortOrder(), command.detail());
+        curation.update(curationPage, command.type(), command.name(), command.sortOrder(), command.detail());
+    }
+
+    @Transactional
+    public void updateSortOrders(List<CurationSortOrderCommand> commands) {
+        validateSortOrders(commands);
+
+        var commandById = commands.stream()
+                .collect(Collectors.toMap(CurationSortOrderCommand::id, Function.identity()));
+        var curations = curationRepository.findAllByIds(commandById.keySet().stream().toList());
+
+        if (curations.size() != commandById.size()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "curation contains unknown id");
+        }
+
+        for (var curation : curations) {
+            curation.updateSortOrder(commandById.get(curation.getId()).sortOrder());
+        }
     }
 
     @Transactional
@@ -77,7 +101,15 @@ public class CurationService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "curation not found"));
     }
 
+    private CurationPage getCurationPage(CurationCommand command) {
+        return curationPageRepository.findByType(command.curationPageType())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "curationPageType not found"));
+    }
+
     private void validate(CurationCommand command) {
+        if (command.curationPageType() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "curationPageType is required");
+        }
         if (command.type() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "type is required");
         }
@@ -92,6 +124,24 @@ public class CurationService {
         }
 
         validateDetail(command);
+    }
+
+    private void validateSortOrders(List<CurationSortOrderCommand> commands) {
+        if (commands == null || commands.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "sortOrders is required");
+        }
+        if (commands.stream().anyMatch(Objects::isNull)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "sortOrders must not contain null");
+        }
+        if (commands.stream().anyMatch(command -> command.id() == null || command.id() <= 0)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "sortOrders.id is required");
+        }
+        if (commands.stream().anyMatch(command -> command.sortOrder() < 0)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "sortOrders.sortOrder must be greater than or equal to 0");
+        }
+        if (commands.stream().map(CurationSortOrderCommand::id).collect(Collectors.toSet()).size() != commands.size()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "sortOrders.id must be unique");
+        }
     }
 
     private void validateDetail(CurationCommand command) {
@@ -151,7 +201,7 @@ public class CurationService {
         validateList(items, fieldName);
 
         for (var item : items) {
-            if (!StringUtils.hasText(item.getImageUrl())) {
+            if (!StringUtils.hasText(item.getImageStorageKey())) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + ".imageUrl is required");
             }
             validateLink(item, fieldName + ".link");

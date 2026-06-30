@@ -3,6 +3,7 @@ package com.kings.web.infra.presentation.curation;
 import com.kings.web.application.curation.CurationCommand;
 import com.kings.web.application.curation.CurationData;
 import com.kings.web.application.curation.CurationService;
+import com.kings.web.application.curation.CurationSortOrderCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,6 +41,11 @@ public class CurationController {
     @PutMapping("/{id}")
     public void update(@PathVariable Long id, @RequestBody CurationCommand command) {
         curationService.update(id, command);
+    }
+
+    @PutMapping("/sort-orders")
+    public void updateSortOrders(@RequestBody List<CurationSortOrderCommand> commands) {
+        curationService.updateSortOrders(commands);
     }
 
     @DeleteMapping("/{id}")

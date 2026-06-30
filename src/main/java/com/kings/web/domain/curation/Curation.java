@@ -2,14 +2,8 @@ package com.kings.web.domain.curation;
 
 import com.kings.web.domain.audit.BaseAuditableEntity;
 import com.kings.web.domain.curation.detail.CurationDetail;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.kings.web.domain.curation.page.CurationPage;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -43,21 +37,31 @@ public class Curation extends BaseAuditableEntity {
     @Column(nullable = false, columnDefinition = "json")
     private CurationDetail detail;
 
-    private Curation(CurationType type, String name, int sortOrder, CurationDetail detail) {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "curation_page_id", nullable = false)
+    private CurationPage curationPage;
+
+    private Curation(CurationPage curationPage, CurationType type, String name, int sortOrder, CurationDetail detail) {
+        this.curationPage = Objects.requireNonNull(curationPage, "curationPage must not be null");
         this.type = Objects.requireNonNull(type, "type must not be null");
         this.name = Objects.requireNonNull(name, "name must not be null");
         this.sortOrder = sortOrder;
         this.detail = Objects.requireNonNull(detail, "detail must not be null");
     }
 
-    public static Curation create(CurationType type, String name, int sortOrder, CurationDetail detail) {
-        return new Curation(type, name, sortOrder, detail);
+    public static Curation create(CurationPage curationPage, CurationType type, String name, int sortOrder, CurationDetail detail) {
+        return new Curation(curationPage, type, name, sortOrder, detail);
     }
 
-    public void update(CurationType type, String name, int sortOrder, CurationDetail detail) {
+    public void update(CurationPage curationPage, CurationType type, String name, int sortOrder, CurationDetail detail) {
+        this.curationPage = Objects.requireNonNull(curationPage, "curationPage must not be null");
         this.type = Objects.requireNonNull(type, "type must not be null");
         this.name = Objects.requireNonNull(name, "name must not be null");
         this.sortOrder = sortOrder;
         this.detail = Objects.requireNonNull(detail, "detail must not be null");
+    }
+
+    public void updateSortOrder(int sortOrder) {
+        this.sortOrder = sortOrder;
     }
 }

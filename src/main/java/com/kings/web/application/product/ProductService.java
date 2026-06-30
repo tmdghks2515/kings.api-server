@@ -21,9 +21,12 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashSet;
-import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -37,15 +40,18 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public List<ProductData> findAll() {
-        return productRepository.findAll()
-                .stream()
-                .map(ProductData::from)
+        var products = productRepository.findAll();
+        var fileResources = findImageFileResources(products);
+
+        return products.stream()
+                .map(product -> ProductData.from(product, fileResources))
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public ProductData findByCode(String code) {
-        return ProductData.from(getByCode(code));
+        var product = getByCode(code);
+        return ProductData.from(product, findImageFileResources(List.of(product)));
     }
 
     @Transactional
@@ -166,10 +172,14 @@ public class ProductService {
             Product product,
             List<ProductCommand.ProductImageCommand> imageCommands
     ) {
+        var fileResourceById = findFileResourcesById(imageCommands.stream()
+                .map(ProductCommand.ProductImageCommand::fileResourceId)
+                .toList());
+
         return imageCommands.stream()
                 .map(imageCommand -> ProductImage.create(
                         product,
-                        findFileResource(imageCommand.fileResourceId()),
+                        fileResourceById.get(imageCommand.fileResourceId()).getStorageKey(),
                         imageCommands.indexOf(imageCommand) + 1,
                         imageCommand.main()
                 ))
@@ -177,10 +187,12 @@ public class ProductService {
     }
 
     private List<ProductDetailImage> toDetailImages(Product product, List<Long> fileResourceIds) {
+        var fileResourceById = findFileResourcesById(fileResourceIds);
+
         return fileResourceIds.stream()
                 .map(fileResourceId -> ProductDetailImage.create(
                         product,
-                        findFileResource(fileResourceId),
+                        fileResourceById.get(fileResourceId).getStorageKey(),
                         fileResourceIds.indexOf(fileResourceId) + 1
                 ))
                 .toList();
@@ -203,22 +215,25 @@ public class ProductService {
     }
 
     private List<FileResource> collectImageFileResources(List<Product> products) {
-        var fileResources = new LinkedHashMap<Long, FileResource>();
+        return findImageFileResources(products);
+    }
 
+    private List<FileResource> findImageFileResources(List<Product> products) {
+        var storageKeys = new LinkedHashSet<String>();
         for (var product : products) {
             for (var image : product.getImages()) {
-                var fileResource = image.getFileResource();
-                fileResources.put(fileResource.getId(), fileResource);
+                storageKeys.add(image.getStorageKey());
             }
             for (var detailImage : product.getDetailImages()) {
-                var fileResource = detailImage.getFileResource();
-                fileResources.put(fileResource.getId(), fileResource);
+                storageKeys.add(detailImage.getStorageKey());
             }
         }
 
-        return fileResources.values()
-                .stream()
-                .toList();
+        if (storageKeys.isEmpty()) {
+            return List.of();
+        }
+
+        return fileResourceRepository.findAllByStorageKeyIn(List.copyOf(storageKeys));
     }
 
     private List<ProductCommand.ProductOptionCommand> normalizedOptions(
@@ -240,9 +255,21 @@ public class ProductService {
         }
     }
 
-    private FileResource findFileResource(Long fileResourceId) {
-        return fileResourceRepository.findById(fileResourceId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "file not found"));
+    private Map<Long, FileResource> findFileResourcesById(List<Long> fileResourceIds) {
+        if (fileResourceIds.isEmpty()) {
+            return Map.of();
+        }
+
+        var fileResources = fileResourceRepository.findAllByIdIn(fileResourceIds);
+        if (fileResources.size() != new HashSet<>(fileResourceIds).size()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "file not found");
+        }
+
+        return fileResources.stream()
+                .collect(Collectors.toMap(
+                        FileResource::getId,
+                        Function.identity()
+                ));
     }
 
     private List<ProductCommand.ProductImageCommand> normalizedImages(

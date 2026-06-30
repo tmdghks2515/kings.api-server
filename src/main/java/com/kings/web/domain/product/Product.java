@@ -105,14 +105,14 @@ public class Product extends BaseAuditableEntity {
 
     public void replaceImages(List<ProductImage> images) {
         var replacementImages = Objects.requireNonNull(images, "images must not be null");
-        var replacementFileResourceIds = replacementImages.stream()
-                .map(ProductImage::getFileResourceId)
+        var replacementStorageKeys = replacementImages.stream()
+                .map(ProductImage::getStorageKey)
                 .toList();
 
-        this.images.removeIf(image -> !replacementFileResourceIds.contains(image.getFileResourceId()));
+        this.images.removeIf(image -> !replacementStorageKeys.contains(image.getStorageKey()));
 
         for (var replacementImage : replacementImages) {
-            findImageByFileResourceId(replacementImage.getFileResourceId())
+            findImageByStorageKey(replacementImage.getStorageKey())
                     .ifPresentOrElse(
                             image -> image.update(replacementImage.getSortOrder(), replacementImage.isMain()),
                             () -> addImage(replacementImage)
@@ -122,14 +122,14 @@ public class Product extends BaseAuditableEntity {
 
     public void replaceDetailImages(List<ProductDetailImage> detailImages) {
         var replacementDetailImages = Objects.requireNonNull(detailImages, "detailImages must not be null");
-        var replacementFileResourceIds = replacementDetailImages.stream()
-                .map(ProductDetailImage::getFileResourceId)
+        var replacementStorageKeys = replacementDetailImages.stream()
+                .map(ProductDetailImage::getStorageKey)
                 .toList();
 
-        this.detailImages.removeIf(detailImage -> !replacementFileResourceIds.contains(detailImage.getFileResourceId()));
+        this.detailImages.removeIf(detailImage -> !replacementStorageKeys.contains(detailImage.getStorageKey()));
 
         for (var replacementDetailImage : replacementDetailImages) {
-            findDetailImageByFileResourceId(replacementDetailImage.getFileResourceId())
+            findDetailImageByStorageKey(replacementDetailImage.getStorageKey())
                     .ifPresentOrElse(
                             detailImage -> detailImage.updateSortOrder(replacementDetailImage.getSortOrder()),
                             () -> addDetailImage(replacementDetailImage)
@@ -137,15 +137,15 @@ public class Product extends BaseAuditableEntity {
         }
     }
 
-    private Optional<ProductImage> findImageByFileResourceId(Long fileResourceId) {
+    private Optional<ProductImage> findImageByStorageKey(String storageKey) {
         return images.stream()
-                .filter(image -> Objects.equals(image.getFileResourceId(), fileResourceId))
+                .filter(image -> Objects.equals(image.getStorageKey(), storageKey))
                 .findFirst();
     }
 
-    private Optional<ProductDetailImage> findDetailImageByFileResourceId(Long fileResourceId) {
+    private Optional<ProductDetailImage> findDetailImageByStorageKey(String storageKey) {
         return detailImages.stream()
-                .filter(detailImage -> Objects.equals(detailImage.getFileResourceId(), fileResourceId))
+                .filter(detailImage -> Objects.equals(detailImage.getStorageKey(), storageKey))
                 .findFirst();
     }
 }

@@ -25,8 +25,18 @@ public class FileResourceRepositoryImpl implements FileResourceRepository {
     }
 
     @Override
+    public List<FileResource> findAllByIdIn(List<Long> ids) {
+        return fileResourceJpaRepository.findByIdIn(ids);
+    }
+
+    @Override
     public Optional<FileResource> findByStorageKey(String storageKey) {
         return fileResourceJpaRepository.findByStorageKey(storageKey);
+    }
+
+    @Override
+    public List<FileResource> findAllByStorageKeyIn(List<String> storageKeys) {
+        return fileResourceJpaRepository.findByStorageKeyIn(storageKeys);
     }
 
     @Override

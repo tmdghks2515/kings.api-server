@@ -25,6 +25,11 @@ public class CurationRepositoryImpl implements CurationRepository {
     }
 
     @Override
+    public List<Curation> findAllByIds(List<Long> ids) {
+        return curationJpaRepository.findAllById(ids);
+    }
+
+    @Override
     public Optional<Curation> findById(Long id) {
         return curationJpaRepository.findById(id);
     }

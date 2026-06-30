@@ -21,6 +21,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -143,10 +146,14 @@ public class CreateProductService {
             Product product,
             List<ProductCommand.ProductImageCommand> imageCommands
     ) {
+        var fileResourceById = findFileResourcesById(imageCommands.stream()
+                .map(ProductCommand.ProductImageCommand::fileResourceId)
+                .toList());
+
         return imageCommands.stream()
                 .map(imageCommand -> ProductImage.create(
                         product,
-                        findFileResource(imageCommand.fileResourceId()),
+                        fileResourceById.get(imageCommand.fileResourceId()).getStorageKey(),
                         imageCommands.indexOf(imageCommand) + 1,
                         imageCommand.main()
                 ))
@@ -154,18 +161,32 @@ public class CreateProductService {
     }
 
     private List<ProductDetailImage> toDetailImages(Product product, List<Long> fileResourceIds) {
+        var fileResourceById = findFileResourcesById(fileResourceIds);
+
         return fileResourceIds.stream()
                 .map(fileResourceId -> ProductDetailImage.create(
                         product,
-                        findFileResource(fileResourceId),
+                        fileResourceById.get(fileResourceId).getStorageKey(),
                         fileResourceIds.indexOf(fileResourceId) + 1
                 ))
                 .toList();
     }
 
-    private FileResource findFileResource(Long fileResourceId) {
-        return fileResourceRepository.findById(fileResourceId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "file not found"));
+    private Map<Long, FileResource> findFileResourcesById(List<Long> fileResourceIds) {
+        if (fileResourceIds.isEmpty()) {
+            return Map.of();
+        }
+
+        var fileResources = fileResourceRepository.findAllByIdIn(fileResourceIds);
+        if (fileResources.size() != new HashSet<>(fileResourceIds).size()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "file not found");
+        }
+
+        return fileResources.stream()
+                .collect(Collectors.toMap(
+                        FileResource::getId,
+                        Function.identity()
+                ));
     }
 
     private List<ProductCommand.ProductImageCommand> normalizedImages(
