@@ -8,6 +8,17 @@ Content-Type: application/json
   "password": "password123!"
 }
 
+### Create user
+POST {{host}}/api/users
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "username": "bob",
+  "nickname": "Bob",
+  "password": "password123!"
+}
+
 ### Sign up duplicate username
 POST {{host}}/api/users/signup
 Content-Type: application/json
