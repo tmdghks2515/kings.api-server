@@ -8,9 +8,13 @@ public interface CategoryRepository {
 
     List<Category> findAll();
 
+    List<Category> findAllOrderBySortOrder();
+
     Optional<Category> findById(Long id);
 
     List<Category> findByParentCategoryId(Long parentCategoryId);
+
+    List<Category> findByParentCategoryIdOrderBySortOrder(Long parentCategoryId);
 
     void delete(Category category);
 }

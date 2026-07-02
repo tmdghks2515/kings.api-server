@@ -8,6 +8,8 @@ public interface BrandRepository {
 
     List<Brand> findAll();
 
+    List<Brand> findAllOrderBySortOrder();
+
     Optional<Brand> findById(Long id);
 
     boolean existsByName(String name);

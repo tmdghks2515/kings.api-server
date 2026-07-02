@@ -10,6 +10,8 @@ public interface ProductRepository {
 
     List<Product> findAll();
 
+    List<Product> findAll(String keyword, Long categoryId, Long brandId);
+
     List<Product> findAllByCodes(List<String> codes);
 
     Optional<Product> findByCode(String code);

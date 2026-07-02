@@ -34,7 +34,7 @@ public class CategoryService {
 
     @Transactional(readOnly = true)
     public List<CategoryData> findAll() {
-        return categoryRepository.findAll()
+        return categoryRepository.findAllOrderBySortOrder()
                 .stream()
                 .filter(category -> category.getParentCategory() == null)
                 .map(this::toData)
@@ -60,7 +60,7 @@ public class CategoryService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "parent category must not be a child category");
         }
 
-        category.update(command.depth(), command.name(), parentCategory);
+        category.update(command.depth(), command.name(), command.sortOrder(), parentCategory);
         syncChildren(category, normalizedChildren(command.children()), new HashSet<>(Set.of(id)));
     }
 
@@ -103,6 +103,9 @@ public class CategoryService {
         if (!StringUtils.hasText(command.name())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name is required");
         }
+        if (command.sortOrder() < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "sortOrder must be greater than or equal to 0");
+        }
         for (var child : normalizedChildren(command.children())) {
             validate(child);
         }
@@ -110,7 +113,7 @@ public class CategoryService {
 
     private Category createCategory(CategoryCommand command, Category parentCategory) {
         var category = categoryRepository.save(
-                Category.create(command.depth(), command.name(), parentCategory)
+                Category.create(command.depth(), command.name(), command.sortOrder(), parentCategory)
         );
 
         for (var child : normalizedChildren(command.children())) {
@@ -153,7 +156,7 @@ public class CategoryService {
             }
 
             var childCategory = getById(childCommand.id());
-            childCategory.update(childCommand.depth(), childCommand.name(), parentCategory);
+            childCategory.update(childCommand.depth(), childCommand.name(), childCommand.sortOrder(), parentCategory);
 
             var nextAncestorIds = new HashSet<>(ancestorIds);
             nextAncestorIds.add(childCategory.getId());
@@ -170,7 +173,7 @@ public class CategoryService {
     }
 
     private CategoryData toData(Category category) {
-        var children = categoryRepository.findByParentCategoryId(category.getId())
+        var children = categoryRepository.findByParentCategoryIdOrderBySortOrder(category.getId())
                 .stream()
                 .map(this::toData)
                 .toList();

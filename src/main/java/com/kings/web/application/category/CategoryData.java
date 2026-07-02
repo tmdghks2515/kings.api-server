@@ -8,6 +8,7 @@ public record CategoryData(
         Long id,
         int depth,
         String name,
+        int sortOrder,
         Long parentCategoryId,
         List<CategoryData> children
 ) {
@@ -18,6 +19,7 @@ public record CategoryData(
                 category.getId(),
                 category.getDepth(),
                 category.getName(),
+                category.getSortOrder(),
                 parentCategory == null ? null : parentCategory.getId(),
                 children
         );

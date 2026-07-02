@@ -32,6 +32,7 @@ public class BrandService {
         return brandRepository.save(Brand.create(
                 command.name(),
                 command.introduce(),
+                command.sortOrder(),
                 findStorageKey(command.logoResourceId(), "logo not found"),
                 findStorageKey(command.mainImageResourceId(), "main image not found")
         )).getId();
@@ -39,7 +40,7 @@ public class BrandService {
 
     @Transactional(readOnly = true)
     public List<BrandData> findAll() {
-        var brands = brandRepository.findAll();
+        var brands = brandRepository.findAllOrderBySortOrder();
         var fileResources = findBrandFileResources(brands);
 
         return brands.stream()
@@ -64,6 +65,7 @@ public class BrandService {
         getById(id).update(
                 command.name(),
                 command.introduce(),
+                command.sortOrder(),
                 findStorageKey(command.logoResourceId(), "logo not found"),
                 findStorageKey(command.mainImageResourceId(), "main image not found")
         );
@@ -117,6 +119,9 @@ public class BrandService {
         }
         if (command.introduce() != null && command.introduce().length() > 1000) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "introduce must be less than or equal to 1000 characters");
+        }
+        if (command.sortOrder() < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "sortOrder must be greater than or equal to 0");
         }
         if (command.logoResourceId() != null && command.logoResourceId() <= 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "logoResourceId must be greater than 0");

@@ -1,7 +1,10 @@
 package com.kings.web.application.user;
 
+import com.kings.web.domain.user.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -18,7 +21,8 @@ public class SignUpUserService {
         userService.create(new UserCommand(
                 command.username(),
                 command.nickname(),
-                command.password()
+                command.password(),
+                Set.of(Role.USER)
         ));
     }
 }

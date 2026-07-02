@@ -25,6 +25,11 @@ public class CategoryRepositoryImpl implements CategoryRepository {
     }
 
     @Override
+    public List<Category> findAllOrderBySortOrder() {
+        return categoryJpaRepository.findAllByOrderBySortOrderAscIdAsc();
+    }
+
+    @Override
     public Optional<Category> findById(Long id) {
         return categoryJpaRepository.findById(id);
     }
@@ -32,6 +37,11 @@ public class CategoryRepositoryImpl implements CategoryRepository {
     @Override
     public List<Category> findByParentCategoryId(Long parentCategoryId) {
         return categoryJpaRepository.findByParentCategoryId(parentCategoryId);
+    }
+
+    @Override
+    public List<Category> findByParentCategoryIdOrderBySortOrder(Long parentCategoryId) {
+        return categoryJpaRepository.findByParentCategoryIdOrderBySortOrderAscIdAsc(parentCategoryId);
     }
 
     @Override

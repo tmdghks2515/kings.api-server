@@ -39,8 +39,12 @@ public class ProductService {
     private final FileStorage fileStorage;
 
     @Transactional(readOnly = true)
-    public List<ProductData> findAll() {
-        var products = productRepository.findAll();
+    public List<ProductData> findAll(ProductQuery query) {
+        var products = productRepository.findAll(
+                normalizeKeyword(query),
+                query == null ? null : query.categoryId(),
+                query == null ? null : query.brandId()
+        );
         var fileResources = findImageFileResources(products);
 
         return products.stream()
@@ -103,6 +107,14 @@ public class ProductService {
 
         return categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "category not found"));
+    }
+
+    private String normalizeKeyword(ProductQuery query) {
+        if (query == null || !StringUtils.hasText(query.keyword())) {
+            return null;
+        }
+
+        return query.keyword().trim();
     }
 
     private Brand findBrand(Long brandId) {

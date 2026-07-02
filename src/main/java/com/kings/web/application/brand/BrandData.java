@@ -12,6 +12,7 @@ public record BrandData(
         Long id,
         String name,
         String introduce,
+        int sortOrder,
         FileResourceData logo,
         FileResourceData mainImage
 ) {
@@ -33,6 +34,7 @@ public record BrandData(
                 brand.getId(),
                 brand.getName(),
                 brand.getIntroduce(),
+                brand.getSortOrder(),
                 logo == null ? null : FileResourceData.from(logo),
                 mainImage == null ? null : FileResourceData.from(mainImage)
         );

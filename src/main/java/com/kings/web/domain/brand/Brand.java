@@ -25,26 +25,31 @@ public class Brand extends BaseAuditableEntity {
     @Column(length = 1000)
     private String introduce;
 
+    @Column(name = "sort_order", nullable = false)
+    private int sortOrder;
+
     @Column(name = "logo_storage_key", length = 500)
     private String logoStorageKey;
 
     @Column(name = "main_image_storage_key", length = 500)
     private String mainImageStorageKey;
 
-    private Brand(String name, String introduce, String logoStorageKey, String mainImageStorageKey) {
+    private Brand(String name, String introduce, int sortOrder, String logoStorageKey, String mainImageStorageKey) {
         this.name = Objects.requireNonNull(name, "name must not be null");
         this.introduce = introduce;
+        this.sortOrder = sortOrder;
         this.logoStorageKey = logoStorageKey;
         this.mainImageStorageKey = mainImageStorageKey;
     }
 
-    public static Brand create(String name, String introduce, String logoStorageKey, String mainImageStorageKey) {
-        return new Brand(name, introduce, logoStorageKey, mainImageStorageKey);
+    public static Brand create(String name, String introduce, int sortOrder, String logoStorageKey, String mainImageStorageKey) {
+        return new Brand(name, introduce, sortOrder, logoStorageKey, mainImageStorageKey);
     }
 
-    public void update(String name, String introduce, String logoStorageKey, String mainImageStorageKey) {
+    public void update(String name, String introduce, int sortOrder, String logoStorageKey, String mainImageStorageKey) {
         this.name = Objects.requireNonNull(name, "name must not be null");
         this.introduce = introduce;
+        this.sortOrder = sortOrder;
         this.logoStorageKey = logoStorageKey;
         this.mainImageStorageKey = mainImageStorageKey;
     }

@@ -30,6 +30,11 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
+    public List<Product> findAll(String keyword, Long categoryId, Long brandId) {
+        return productJpaRepository.search(keyword, categoryId, brandId);
+    }
+
+    @Override
     public List<Product> findAllByCodes(List<String> codes) {
         return productJpaRepository.findByCodeIn(codes);
     }

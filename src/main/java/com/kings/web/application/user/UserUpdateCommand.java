@@ -4,8 +4,7 @@ import com.kings.web.domain.user.Role;
 
 import java.util.Set;
 
-public record UserCommand(
-        String username,
+public record UserUpdateCommand(
         String nickname,
         String password,
         Set<Role> roles

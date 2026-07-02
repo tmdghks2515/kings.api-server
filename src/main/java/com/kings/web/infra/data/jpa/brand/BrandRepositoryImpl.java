@@ -25,6 +25,11 @@ public class BrandRepositoryImpl implements BrandRepository {
     }
 
     @Override
+    public List<Brand> findAllOrderBySortOrder() {
+        return brandJpaRepository.findAllByOrderBySortOrderAscIdAsc();
+    }
+
+    @Override
     public Optional<Brand> findById(Long id) {
         return brandJpaRepository.findById(id);
     }

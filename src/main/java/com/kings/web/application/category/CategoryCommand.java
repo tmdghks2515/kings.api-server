@@ -6,6 +6,7 @@ public record CategoryCommand(
         Long id,
         int depth,
         String name,
+        int sortOrder,
         Long parentCategoryId,
         List<CategoryCommand> children
 ) {

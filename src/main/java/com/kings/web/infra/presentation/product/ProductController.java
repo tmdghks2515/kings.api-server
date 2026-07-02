@@ -4,9 +4,11 @@ import com.kings.web.application.product.CreateProductService;
 import com.kings.web.application.product.ProductCommand;
 import com.kings.web.application.product.ProductData;
 import com.kings.web.application.product.ProductDeleteCommand;
+import com.kings.web.application.product.ProductQuery;
 import com.kings.web.application.product.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -30,8 +32,8 @@ public class ProductController {
     }
 
     @GetMapping
-    public List<ProductData> findAll() {
-        return productService.findAll();
+    public List<ProductData> findAll(@ModelAttribute ProductQuery query) {
+        return productService.findAll(query);
     }
 
     @GetMapping("/{code}")

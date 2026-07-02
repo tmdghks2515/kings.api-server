@@ -13,6 +13,22 @@ public interface ProductJpaRepository extends JpaRepository<Product, String> {
 
     List<Product> findByCodeIn(List<String> codes);
 
+    @Query("""
+            select product
+            from Product product
+            left join fetch product.category
+            left join fetch product.brand
+            where (:keyword is null or product.code = :keyword or product.name like concat('%', :keyword, '%'))
+              and (:categoryId is null or product.category.id = :categoryId)
+              and (:brandId is null or product.brand.id = :brandId)
+            order by product.createdAt desc
+            """)
+    List<Product> search(
+            @Param("keyword") String keyword,
+            @Param("categoryId") Long categoryId,
+            @Param("brandId") Long brandId
+    );
+
     @Modifying
     @Query("delete from ProductOption productOption where productOption.product.code in :codes")
     void deleteOptionsByProductCodeIn(@Param("codes") List<String> codes);

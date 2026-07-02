@@ -12,7 +12,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -51,5 +50,14 @@ public class User extends BaseAuditableEntity {
 
     public static User create(String username, String nickname, String password, Set<Role> roles) {
         return new User(username, nickname, password, roles);
+    }
+
+    public void update(String nickname, String password, Set<Role> roles) {
+        this.nickname = Objects.requireNonNull(nickname, "nickname must not be null");
+        if (password != null) {
+            this.password = password;
+        }
+        this.roles.clear();
+        this.roles.addAll(Objects.requireNonNull(roles, "roles must not be null"));
     }
 }

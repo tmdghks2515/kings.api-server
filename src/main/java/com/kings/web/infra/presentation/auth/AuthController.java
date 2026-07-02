@@ -20,4 +20,8 @@ public class AuthController {
     public LoginResult login(@RequestBody LoginCommand command) {
         return loginService.login(command);
     }
+
+    @PostMapping("/logout")
+    public void logout() {
+    }
 }

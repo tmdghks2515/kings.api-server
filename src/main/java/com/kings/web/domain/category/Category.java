@@ -33,23 +33,28 @@ public class Category extends BaseAuditableEntity {
     @Column(nullable = false, length = 100)
     private String name;
 
+    @Column(name = "sort_order", nullable = false)
+    private int sortOrder;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_category_id")
     private Category parentCategory;
 
-    private Category(int depth, String name, Category parentCategory) {
+    private Category(int depth, String name, int sortOrder, Category parentCategory) {
         this.depth = depth;
         this.name = Objects.requireNonNull(name, "name must not be null");
+        this.sortOrder = sortOrder;
         this.parentCategory = parentCategory;
     }
 
-    public static Category create(int depth, String name, Category parentCategory) {
-        return new Category(depth, name, parentCategory);
+    public static Category create(int depth, String name, int sortOrder, Category parentCategory) {
+        return new Category(depth, name, sortOrder, parentCategory);
     }
 
-    public void update(int depth, String name, Category parentCategory) {
+    public void update(int depth, String name, int sortOrder, Category parentCategory) {
         this.depth = depth;
         this.name = Objects.requireNonNull(name, "name must not be null");
+        this.sortOrder = sortOrder;
         this.parentCategory = parentCategory;
     }
 }

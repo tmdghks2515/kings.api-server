@@ -7,4 +7,8 @@ import java.util.List;
 
 public interface CategoryJpaRepository extends JpaRepository<Category, Long> {
     List<Category> findByParentCategoryId(Long parentCategoryId);
+
+    List<Category> findAllByOrderBySortOrderAscIdAsc();
+
+    List<Category> findByParentCategoryIdOrderBySortOrderAscIdAsc(Long parentCategoryId);
 }
