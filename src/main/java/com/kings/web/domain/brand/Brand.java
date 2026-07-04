@@ -35,7 +35,7 @@ public class Brand extends BaseAuditableEntity {
     private String mainImageStorageKey;
 
     private Brand(String name, String introduce, int sortOrder, String logoStorageKey, String mainImageStorageKey) {
-        this.name = Objects.requireNonNull(name, "name must not be null");
+        this.name = Objects.requireNonNull(name, "브랜드명은 필수입니다.");
         this.introduce = introduce;
         this.sortOrder = sortOrder;
         this.logoStorageKey = logoStorageKey;
@@ -47,7 +47,7 @@ public class Brand extends BaseAuditableEntity {
     }
 
     public void update(String name, String introduce, int sortOrder, String logoStorageKey, String mainImageStorageKey) {
-        this.name = Objects.requireNonNull(name, "name must not be null");
+        this.name = Objects.requireNonNull(name, "브랜드명은 필수입니다.");
         this.introduce = introduce;
         this.sortOrder = sortOrder;
         this.logoStorageKey = logoStorageKey;

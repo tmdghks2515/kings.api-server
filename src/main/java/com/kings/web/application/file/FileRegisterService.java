@@ -50,7 +50,7 @@ public class FileRegisterService {
 
     private void validate(MultipartFile file) {
         if (file == null || file.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "file is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "파일을 첨부해 주세요.");
         }
     }
 
@@ -60,7 +60,7 @@ public class FileRegisterService {
         );
 
         if (filename.contains("..")) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid filename");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "파일명이 올바르지 않습니다.");
         }
         return filename;
     }

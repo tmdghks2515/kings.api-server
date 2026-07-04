@@ -30,6 +30,11 @@ public class CategoryRepositoryImpl implements CategoryRepository {
     }
 
     @Override
+    public List<Category> findAllByIds(List<Long> ids) {
+        return categoryJpaRepository.findAllById(ids);
+    }
+
+    @Override
     public Optional<Category> findById(Long id) {
         return categoryJpaRepository.findById(id);
     }

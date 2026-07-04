@@ -10,6 +10,8 @@ public interface BrandRepository {
 
     List<Brand> findAllOrderBySortOrder();
 
+    List<Brand> findAllByIds(List<Long> ids);
+
     Optional<Brand> findById(Long id);
 
     boolean existsByName(String name);

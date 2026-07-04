@@ -42,11 +42,11 @@ public class Curation extends BaseAuditableEntity {
     private CurationPage curationPage;
 
     private Curation(CurationPage curationPage, CurationType type, String name, int sortOrder, CurationDetail detail) {
-        this.curationPage = Objects.requireNonNull(curationPage, "curationPage must not be null");
-        this.type = Objects.requireNonNull(type, "type must not be null");
-        this.name = Objects.requireNonNull(name, "name must not be null");
+        this.curationPage = Objects.requireNonNull(curationPage, "큐레이션 페이지는 필수입니다.");
+        this.type = Objects.requireNonNull(type, "큐레이션 타입은 필수입니다.");
+        this.name = Objects.requireNonNull(name, "큐레이션명은 필수입니다.");
         this.sortOrder = sortOrder;
-        this.detail = Objects.requireNonNull(detail, "detail must not be null");
+        this.detail = Objects.requireNonNull(detail, "큐레이션 상세 정보는 필수입니다.");
     }
 
     public static Curation create(CurationPage curationPage, CurationType type, String name, int sortOrder, CurationDetail detail) {
@@ -54,11 +54,11 @@ public class Curation extends BaseAuditableEntity {
     }
 
     public void update(CurationPage curationPage, CurationType type, String name, int sortOrder, CurationDetail detail) {
-        this.curationPage = Objects.requireNonNull(curationPage, "curationPage must not be null");
-        this.type = Objects.requireNonNull(type, "type must not be null");
-        this.name = Objects.requireNonNull(name, "name must not be null");
+        this.curationPage = Objects.requireNonNull(curationPage, "큐레이션 페이지는 필수입니다.");
+        this.type = Objects.requireNonNull(type, "큐레이션 타입은 필수입니다.");
+        this.name = Objects.requireNonNull(name, "큐레이션명은 필수입니다.");
         this.sortOrder = sortOrder;
-        this.detail = Objects.requireNonNull(detail, "detail must not be null");
+        this.detail = Objects.requireNonNull(detail, "큐레이션 상세 정보는 필수입니다.");
     }
 
     public void updateSortOrder(int sortOrder) {

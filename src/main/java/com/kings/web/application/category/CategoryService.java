@@ -54,10 +54,10 @@ public class CategoryService {
         var parentCategory = findParentCategory(command.parentCategoryId());
 
         if (parentCategory != null && parentCategory.getId().equals(id)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "parent category must be different from category");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "상위 카테고리는 현재 카테고리와 달라야 합니다.");
         }
         if (parentCategory != null && isDescendant(id, parentCategory.getId())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "parent category must not be a child category");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "하위 카테고리를 상위 카테고리로 지정할 수 없습니다.");
         }
 
         category.update(command.depth(), command.name(), command.sortOrder(), parentCategory);
@@ -81,7 +81,7 @@ public class CategoryService {
 
     private Category getById(Long id) {
         return categoryRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "category not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "카테고리를 찾을 수 없습니다."));
     }
 
     private Category findParentCategory(Long parentCategoryId) {
@@ -90,21 +90,21 @@ public class CategoryService {
         }
 
         return categoryRepository.findById(parentCategoryId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "parent category not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "상위 카테고리를 찾을 수 없습니다."));
     }
 
     private void validate(CategoryCommand command) {
         if (command == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "category is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "카테고리 정보를 입력해 주세요.");
         }
         if (command.depth() < 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "depth must be greater than or equal to 0");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "카테고리 깊이는 0 이상이어야 합니다.");
         }
         if (!StringUtils.hasText(command.name())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "카테고리명을 입력해 주세요.");
         }
         if (command.sortOrder() < 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "sortOrder must be greater than or equal to 0");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "정렬 순서는 0 이상이어야 합니다.");
         }
         for (var child : normalizedChildren(command.children())) {
             validate(child);
@@ -134,7 +134,7 @@ public class CategoryService {
                         CategoryCommand::id,
                         Function.identity(),
                         (left, right) -> {
-                            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "child category id must be unique");
+                            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "하위 카테고리 ID는 중복될 수 없습니다.");
                         }
                 ));
 
@@ -152,7 +152,7 @@ public class CategoryService {
             }
 
             if (ancestorIds.contains(childCommand.id())) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "child category must not be an ancestor category");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "상위 카테고리를 하위 카테고리로 지정할 수 없습니다.");
             }
 
             var childCategory = getById(childCommand.id());
@@ -193,15 +193,15 @@ public class CategoryService {
 
     private List<Long> validateDeleteCommand(CategoryDeleteCommand command) {
         if (command == null || command.categoryIds() == null || command.categoryIds().isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "categoryIds is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "삭제할 카테고리를 선택해 주세요.");
         }
 
         var categoryIds = command.categoryIds();
         if (categoryIds.stream().anyMatch(Objects::isNull)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "categoryId is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "카테고리 ID에 빈 값이 포함될 수 없습니다.");
         }
         if (new HashSet<>(categoryIds).size() != categoryIds.size()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "categoryIds must be unique");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "삭제할 카테고리 목록에 중복된 ID가 있습니다.");
         }
 
         return categoryIds;

@@ -50,8 +50,8 @@ public class Product extends BaseAuditableEntity {
     private List<ProductDetailImage> detailImages = new ArrayList<>();
 
     private Product(String code, String name, Double price, Category category, Brand brand) {
-        this.code = Objects.requireNonNull(code, "code must not be null");
-        this.name = Objects.requireNonNull(name, "name must not be null");
+        this.code = Objects.requireNonNull(code, "상품 코드는 필수입니다.");
+        this.name = Objects.requireNonNull(name, "상품명은 필수입니다.");
         this.price = price;
         this.category = category;
         this.brand = brand;
@@ -62,26 +62,26 @@ public class Product extends BaseAuditableEntity {
     }
 
     public void update(String name, Double price, Category category, Brand brand) {
-        this.name = Objects.requireNonNull(name, "name must not be null");
+        this.name = Objects.requireNonNull(name, "상품명은 필수입니다.");
         this.price = price;
         this.category = category;
         this.brand = brand;
     }
 
     public void addOption(ProductOption option) {
-        this.options.add(Objects.requireNonNull(option, "option must not be null"));
+        this.options.add(Objects.requireNonNull(option, "상품 옵션은 필수입니다."));
     }
 
     public void addImage(ProductImage image) {
-        this.images.add(Objects.requireNonNull(image, "image must not be null"));
+        this.images.add(Objects.requireNonNull(image, "상품 이미지는 필수입니다."));
     }
 
     public void addDetailImage(ProductDetailImage detailImage) {
-        this.detailImages.add(Objects.requireNonNull(detailImage, "detailImage must not be null"));
+        this.detailImages.add(Objects.requireNonNull(detailImage, "상품 상세 이미지는 필수입니다."));
     }
 
     public void replaceOptions(List<ProductOption> options) {
-        var replacementOptions = Objects.requireNonNull(options, "options must not be null");
+        var replacementOptions = Objects.requireNonNull(options, "상품 옵션 목록은 필수입니다.");
         var replacementOptionNames = replacementOptions.stream()
                 .map(ProductOption::getName)
                 .toList();
@@ -104,7 +104,7 @@ public class Product extends BaseAuditableEntity {
     }
 
     public void replaceImages(List<ProductImage> images) {
-        var replacementImages = Objects.requireNonNull(images, "images must not be null");
+        var replacementImages = Objects.requireNonNull(images, "상품 이미지 목록은 필수입니다.");
         var replacementStorageKeys = replacementImages.stream()
                 .map(ProductImage::getStorageKey)
                 .toList();
@@ -121,7 +121,7 @@ public class Product extends BaseAuditableEntity {
     }
 
     public void replaceDetailImages(List<ProductDetailImage> detailImages) {
-        var replacementDetailImages = Objects.requireNonNull(detailImages, "detailImages must not be null");
+        var replacementDetailImages = Objects.requireNonNull(detailImages, "상품 상세 이미지 목록은 필수입니다.");
         var replacementStorageKeys = replacementDetailImages.stream()
                 .map(ProductDetailImage::getStorageKey)
                 .toList();

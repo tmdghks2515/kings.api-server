@@ -17,5 +17,6 @@ public interface CurationPageJpaRepository extends JpaRepository<CurationPage, L
     @EntityGraph(attributePaths = "curations")
     Optional<CurationPage> findById(Long id);
 
+    @EntityGraph(attributePaths = "curations")
     Optional<CurationPage> findByType(CurationPageType type);
 }

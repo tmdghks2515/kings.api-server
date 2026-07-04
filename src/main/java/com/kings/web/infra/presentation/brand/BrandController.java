@@ -3,6 +3,7 @@ package com.kings.web.infra.presentation.brand;
 import com.kings.web.application.brand.BrandCommand;
 import com.kings.web.application.brand.BrandData;
 import com.kings.web.application.brand.BrandService;
+import com.kings.web.infra.web.NoAuthentication;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,6 +33,7 @@ public class BrandController {
         return brandService.findAll();
     }
 
+    @NoAuthentication
     @GetMapping("/{id}")
     public BrandData findById(@PathVariable Long id) {
         return brandService.findById(id);

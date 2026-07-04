@@ -42,7 +42,7 @@ public class Category extends BaseAuditableEntity {
 
     private Category(int depth, String name, int sortOrder, Category parentCategory) {
         this.depth = depth;
-        this.name = Objects.requireNonNull(name, "name must not be null");
+        this.name = Objects.requireNonNull(name, "카테고리명은 필수입니다.");
         this.sortOrder = sortOrder;
         this.parentCategory = parentCategory;
     }
@@ -53,7 +53,7 @@ public class Category extends BaseAuditableEntity {
 
     public void update(int depth, String name, int sortOrder, Category parentCategory) {
         this.depth = depth;
-        this.name = Objects.requireNonNull(name, "name must not be null");
+        this.name = Objects.requireNonNull(name, "카테고리명은 필수입니다.");
         this.sortOrder = sortOrder;
         this.parentCategory = parentCategory;
     }

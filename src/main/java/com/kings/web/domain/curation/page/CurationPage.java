@@ -31,7 +31,7 @@ public class CurationPage extends BaseAuditableEntity {
     private final List<Curation> curations = new ArrayList<>();
 
     private CurationPage(CurationPageType type) {
-        this.type = Objects.requireNonNull(type, "type must not be null");
+        this.type = Objects.requireNonNull(type, "큐레이션 페이지 타입은 필수입니다.");
     }
 
     public static CurationPage create(CurationPageType type) {

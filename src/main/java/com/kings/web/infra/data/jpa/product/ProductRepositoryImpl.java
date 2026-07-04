@@ -1,6 +1,8 @@
 package com.kings.web.infra.data.jpa.product;
 
 import com.kings.web.domain.product.Product;
+import com.kings.web.domain.product.ProductMainImageStorageKeyData;
+import com.kings.web.domain.product.ProductOptionNameData;
 import com.kings.web.domain.product.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -37,6 +39,16 @@ public class ProductRepositoryImpl implements ProductRepository {
     @Override
     public List<Product> findAllByCodes(List<String> codes) {
         return productJpaRepository.findByCodeIn(codes);
+    }
+
+    @Override
+    public List<ProductMainImageStorageKeyData> findMainImageStorageKeysByProductCodes(List<String> codes) {
+        return productJpaRepository.findMainImageStorageKeysByProductCodeIn(codes);
+    }
+
+    @Override
+    public List<ProductOptionNameData> findOptionNamesByProductCodes(List<String> codes) {
+        return productJpaRepository.findOptionNamesByProductCodeIn(codes);
     }
 
     @Override

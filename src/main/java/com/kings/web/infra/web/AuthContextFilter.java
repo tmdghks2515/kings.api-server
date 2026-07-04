@@ -8,10 +8,13 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
+import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -27,8 +30,12 @@ public class AuthContextFilter extends OncePerRequestFilter {
             "/api/auth/login",
             "/api/users/signup"
     };
+    private static final String[] NO_AUTHENTICATION_PATH_PREFIXES = {
+            "/api/public/"
+    };
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final RequestMappingHandlerMapping requestMappingHandlerMapping;
 
     @Override
     protected void doFilterInternal(
@@ -41,13 +48,13 @@ public class AuthContextFilter extends OncePerRequestFilter {
                 var authPrincipal = resolveAuthPrincipal(request);
 
                 if (requiresAuthentication(request) && authPrincipal.isEmpty()) {
-                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "missing authorization header");
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "로그인이 필요합니다.");
                     return;
                 }
 
                 authPrincipal.ifPresent(AuthContext::set);
             } catch (IllegalArgumentException exception) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "invalid jwt token");
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "인증 정보가 올바르지 않습니다.");
                 return;
             }
 
@@ -58,9 +65,30 @@ public class AuthContextFilter extends OncePerRequestFilter {
     }
 
     private boolean requiresAuthentication(HttpServletRequest request) {
-        return request.getRequestURI().startsWith(API_PATH_PREFIX)
-                && Arrays.stream(NO_AUTHENTICATION_PATHS).noneMatch(request.getRequestURI()::equals)
-                && !HttpMethod.OPTIONS.matches(request.getMethod());
+        var requestUri = request.getRequestURI();
+
+        if (!requestUri.startsWith(API_PATH_PREFIX)
+                || Arrays.stream(NO_AUTHENTICATION_PATHS).anyMatch(requestUri::equals)
+                || Arrays.stream(NO_AUTHENTICATION_PATH_PREFIXES).anyMatch(requestUri::startsWith)
+                || HttpMethod.OPTIONS.matches(request.getMethod())) {
+            return false;
+        }
+
+        return !hasNoAuthenticationAnnotation(request);
+    }
+
+    private boolean hasNoAuthenticationAnnotation(HttpServletRequest request) {
+        try {
+            var handler = requestMappingHandlerMapping.getHandler(request);
+            if (handler == null || !(handler.getHandler() instanceof HandlerMethod handlerMethod)) {
+                return false;
+            }
+
+            return AnnotatedElementUtils.hasAnnotation(handlerMethod.getMethod(), NoAuthentication.class)
+                    || AnnotatedElementUtils.hasAnnotation(handlerMethod.getBeanType(), NoAuthentication.class);
+        } catch (Exception exception) {
+            return false;
+        }
     }
 
     private Optional<AuthPrincipal> resolveAuthPrincipal(HttpServletRequest request) {

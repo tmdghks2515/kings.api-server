@@ -1,6 +1,9 @@
 package com.kings.web.infra.data.jpa.product;
 
 import com.kings.web.domain.product.Product;
+import com.kings.web.domain.product.ProductMainImageStorageKeyData;
+import com.kings.web.domain.product.ProductOptionNameData;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -11,7 +14,30 @@ import java.util.List;
 public interface ProductJpaRepository extends JpaRepository<Product, String> {
     long countByCodeIn(List<String> codes);
 
+    @EntityGraph(attributePaths = "brand")
     List<Product> findByCodeIn(List<String> codes);
+
+    @Query("""
+            select new com.kings.web.domain.product.ProductMainImageStorageKeyData(
+                productImage.product.code,
+                productImage.id.storageKey
+            )
+            from ProductImage productImage
+            where productImage.product.code in :codes
+              and productImage.main = true
+            """)
+    List<ProductMainImageStorageKeyData> findMainImageStorageKeysByProductCodeIn(@Param("codes") List<String> codes);
+
+    @Query("""
+            select new com.kings.web.domain.product.ProductOptionNameData(
+                productOption.product.code,
+                productOption.id.name
+            )
+            from ProductOption productOption
+            where productOption.product.code in :codes
+            order by productOption.createdAt asc
+            """)
+    List<ProductOptionNameData> findOptionNamesByProductCodeIn(@Param("codes") List<String> codes);
 
     @Query("""
             select product

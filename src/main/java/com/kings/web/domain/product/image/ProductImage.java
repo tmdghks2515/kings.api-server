@@ -37,8 +37,8 @@ public class ProductImage extends BaseAuditableEntity {
     private boolean main;
 
     private ProductImage(Product product, String storageKey, int sortOrder, boolean main) {
-        this.product = Objects.requireNonNull(product, "product must not be null");
-        this.id = new ProductImageId(product.getCode(), Objects.requireNonNull(storageKey, "storageKey must not be null"));
+        this.product = Objects.requireNonNull(product, "상품은 필수입니다.");
+        this.id = new ProductImageId(product.getCode(), Objects.requireNonNull(storageKey, "상품 이미지 저장 키는 필수입니다."));
         this.sortOrder = sortOrder;
         this.main = main;
     }

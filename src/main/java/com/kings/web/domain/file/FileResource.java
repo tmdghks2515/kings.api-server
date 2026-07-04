@@ -46,9 +46,9 @@ public class FileResource extends BaseAuditableEntity {
             String extension,
             long sizeBytes
     ) {
-        this.originalName = Objects.requireNonNull(originalName, "originalName must not be null");
-        this.storageKey = Objects.requireNonNull(storageKey, "storageKey must not be null");
-        this.contentType = Objects.requireNonNull(contentType, "contentType must not be null");
+        this.originalName = Objects.requireNonNull(originalName, "원본 파일명은 필수입니다.");
+        this.storageKey = Objects.requireNonNull(storageKey, "파일 저장 키는 필수입니다.");
+        this.contentType = Objects.requireNonNull(contentType, "파일 콘텐츠 타입은 필수입니다.");
         this.extension = extension;
         this.sizeBytes = validateSize(sizeBytes);
     }
@@ -65,7 +65,7 @@ public class FileResource extends BaseAuditableEntity {
 
     private long validateSize(long sizeBytes) {
         if (sizeBytes <= 0) {
-            throw new IllegalArgumentException("sizeBytes must be greater than 0");
+            throw new IllegalArgumentException("파일 크기는 0보다 커야 합니다.");
         }
         return sizeBytes;
     }

@@ -69,7 +69,7 @@ public class JwtTokenProvider {
 
             return new AuthPrincipal(claims.getSubject(), roles);
         } catch (JwtException | IllegalArgumentException exception) {
-            throw new IllegalArgumentException("invalid jwt token", exception);
+            throw new IllegalArgumentException("인증 정보가 올바르지 않습니다.", exception);
         }
     }
 

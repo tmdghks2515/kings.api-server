@@ -12,7 +12,7 @@ public record ProductCommand(
         Long brandId,
         List<ProductOptionCommand> options,
         List<ProductImageCommand> images,
-        List<Long> detailImages
+        List<String> detailImages
 ) {
     public record ProductOptionCommand(
             String name,
@@ -22,7 +22,7 @@ public record ProductCommand(
     }
 
     public record ProductImageCommand(
-            Long fileResourceId,
+            String imageStorageKey,
             boolean main
     ) {
     }

@@ -10,6 +10,8 @@ public interface CategoryRepository {
 
     List<Category> findAllOrderBySortOrder();
 
+    List<Category> findAllByIds(List<Long> ids);
+
     Optional<Category> findById(Long id);
 
     List<Category> findByParentCategoryId(Long parentCategoryId);

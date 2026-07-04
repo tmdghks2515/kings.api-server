@@ -83,7 +83,7 @@ public class CurationService {
         var curations = curationRepository.findAllByIds(commandById.keySet().stream().toList());
 
         if (curations.size() != commandById.size()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "curation contains unknown id");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "큐레이션 목록에 존재하지 않는 ID가 포함되어 있습니다.");
         }
 
         for (var curation : curations) {
@@ -98,29 +98,29 @@ public class CurationService {
 
     private Curation getById(Long id) {
         return curationRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "curation not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "큐레이션을 찾을 수 없습니다."));
     }
 
     private CurationPage getCurationPage(CurationCommand command) {
         return curationPageRepository.findByType(command.curationPageType())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "curationPageType not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "큐레이션 페이지 타입을 찾을 수 없습니다."));
     }
 
     private void validate(CurationCommand command) {
         if (command.curationPageType() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "curationPageType is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "큐레이션 페이지 타입을 선택해 주세요.");
         }
         if (command.type() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "type is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "큐레이션 타입을 선택해 주세요.");
         }
         if (!StringUtils.hasText(command.name())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "큐레이션명을 입력해 주세요.");
         }
         if (command.sortOrder() < 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "sortOrder must be greater than or equal to 0");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "정렬 순서는 0 이상이어야 합니다.");
         }
         if (command.detail() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "detail is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "큐레이션 상세 정보를 입력해 주세요.");
         }
 
         validateDetail(command);
@@ -128,19 +128,19 @@ public class CurationService {
 
     private void validateSortOrders(List<CurationSortOrderCommand> commands) {
         if (commands == null || commands.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "sortOrders is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "변경할 정렬 순서 정보를 입력해 주세요.");
         }
         if (commands.stream().anyMatch(Objects::isNull)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "sortOrders must not contain null");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "정렬 순서 목록에 빈 값이 포함될 수 없습니다.");
         }
         if (commands.stream().anyMatch(command -> command.id() == null || command.id() <= 0)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "sortOrders.id is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "정렬 순서 목록에 올바른 큐레이션 ID를 입력해 주세요.");
         }
         if (commands.stream().anyMatch(command -> command.sortOrder() < 0)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "sortOrders.sortOrder must be greater than or equal to 0");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "정렬 순서는 0 이상이어야 합니다.");
         }
         if (commands.stream().map(CurationSortOrderCommand::id).collect(Collectors.toSet()).size() != commands.size()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "sortOrders.id must be unique");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "정렬 순서 목록에 중복된 큐레이션 ID가 있습니다.");
         }
     }
 
@@ -148,34 +148,34 @@ public class CurationService {
         switch (command.type()) {
             case MAIN_BANNER -> {
                 if (!(command.detail() instanceof MainBannerDetail detail)) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "detail must be MainBannerDetail");
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "메인 배너 상세 정보 형식이 올바르지 않습니다.");
                 }
                 validateCurationItems(detail.getItems(), "detail.items");
             }
             case NORMAL_BANNER -> {
                 if (!(command.detail() instanceof NormalBannerDetail detail)) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "detail must be NormalBannerDetail");
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "일반 배너 상세 정보 형식이 올바르지 않습니다.");
                 }
                 validateCurationItems(detail.getItems(), "detail.items");
             }
             case CATEGORIES -> {
                 if (!(command.detail() instanceof CategoriesDetail detail)) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "detail must be CategoriesDetail");
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "카테고리 상세 정보 형식이 올바르지 않습니다.");
                 }
                 validateImageLinks(detail.getItems(), "detail.items");
             }
             case TITLED_PRODUCTS -> {
                 if (!(command.detail() instanceof TitledProductsDetail detail)) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "detail must be TitledProductsDetail");
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "타이틀 상품 상세 정보 형식이 올바르지 않습니다.");
                 }
                 if (!StringUtils.hasText(detail.getTitle())) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "detail.title is required");
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "큐레이션 상세 제목을 입력해 주세요.");
                 }
                 validateProductCodes(detail.getProductCodes(), "detail.productCodes");
             }
             case CATEGORY_PRODUCTS -> {
                 if (!(command.detail() instanceof CategoryProductsDetail detail)) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "detail must be CategoryProductsDetail");
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "카테고리 상품 상세 정보 형식이 올바르지 않습니다.");
                 }
                 validateCategoryId(detail.getCategoryId(), "detail.categoryId");
                 validateProductCodes(detail.getProductCodes(), "detail.productCodes");
@@ -186,15 +186,6 @@ public class CurationService {
     private void validateCurationItems(List<CurationItem> items, String fieldName) {
         validateList(items, fieldName);
         validateImageLinks(items.stream().map(item -> (ImageLink) item).toList(), fieldName);
-
-        for (var item : items) {
-            if (!StringUtils.hasText(item.getTitle())) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + ".title is required");
-            }
-            if (!StringUtils.hasText(item.getDescription())) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + ".description is required");
-            }
-        }
     }
 
     private void validateImageLinks(List<? extends ImageLink> items, String fieldName) {
@@ -202,7 +193,7 @@ public class CurationService {
 
         for (var item : items) {
             if (!StringUtils.hasText(item.getImageStorageKey())) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + ".imageUrl is required");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + ".imageUrl을 입력해 주세요.");
             }
             validateLink(item, fieldName + ".link");
         }
@@ -211,7 +202,7 @@ public class CurationService {
     private void validateLink(ImageLink item, String fieldName) {
         var link = item.getLink();
         if (link == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + "을(를) 입력해 주세요.");
         }
 
         if (link instanceof ProductDetailLink productDetailLink) {
@@ -227,67 +218,67 @@ public class CurationService {
             return;
         }
 
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " is invalid");
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " 형식이 올바르지 않습니다.");
     }
 
     private void validateProductCodes(List<String> productCodes, String fieldName) {
         validateList(productCodes, fieldName);
 
         if (productCodes.stream().anyMatch(productCode -> !StringUtils.hasText(productCode))) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " must contain valid product codes");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + "에는 올바른 상품 코드만 입력할 수 있습니다.");
         }
         if (new HashSet<>(productCodes).size() != productCodes.size()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " must be unique");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + "에는 중복된 상품 코드를 입력할 수 없습니다.");
         }
         if (productRepository.countByCodes(productCodes) != productCodes.size()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " contains unknown product code");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + "에 존재하지 않는 상품 코드가 포함되어 있습니다.");
         }
     }
 
     private void validateProductCode(String productCode, String fieldName) {
         if (!StringUtils.hasText(productCode)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + "을(를) 입력해 주세요.");
         }
         if (!productRepository.existsByCode(productCode)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " not found");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + "을(를) 찾을 수 없습니다.");
         }
     }
 
     private void validateCategoryId(Long categoryId, String fieldName) {
         if (categoryId == null || categoryId <= 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + "을(를) 입력해 주세요.");
         }
         if (categoryRepository.findById(categoryId).isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " not found");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + "을(를) 찾을 수 없습니다.");
         }
     }
 
     private Long parseLong(String value, String fieldName) {
         if (!StringUtils.hasText(value)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + "을(를) 입력해 주세요.");
         }
         try {
             return Long.parseLong(value);
         } catch (NumberFormatException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " must be a number");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + "은(는) 숫자로 입력해 주세요.");
         }
     }
 
     private void validateBrandId(Long brandId, String fieldName) {
         if (brandId == null || brandId <= 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + "을(를) 입력해 주세요.");
         }
         if (brandRepository.findById(brandId).isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " not found");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + "을(를) 찾을 수 없습니다.");
         }
     }
 
     private void validateList(List<?> values, String fieldName) {
         if (values == null || values.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + "을(를) 입력해 주세요.");
         }
         if (values.stream().anyMatch(Objects::isNull)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " must not contain null");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + "에 빈 값이 포함될 수 없습니다.");
         }
     }
 }

@@ -14,6 +14,10 @@ public interface ProductRepository {
 
     List<Product> findAllByCodes(List<String> codes);
 
+    List<ProductMainImageStorageKeyData> findMainImageStorageKeysByProductCodes(List<String> codes);
+
+    List<ProductOptionNameData> findOptionNamesByProductCodes(List<String> codes);
+
     Optional<Product> findByCode(String code);
 
     void delete(Product product);

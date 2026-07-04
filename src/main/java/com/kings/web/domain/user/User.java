@@ -42,10 +42,10 @@ public class User extends BaseAuditableEntity {
     private Set<Role> roles = new HashSet<>();
 
     private User(String username, String nickname, String password, Set<Role> roles) {
-        this.username = Objects.requireNonNull(username, "username must not be null");
-        this.nickname = Objects.requireNonNull(nickname, "nickname must not be null");
-        this.password = Objects.requireNonNull(password, "password must not be null");
-        this.roles = new HashSet<>(Objects.requireNonNull(roles, "roles must not be null"));
+        this.username = Objects.requireNonNull(username, "아이디는 필수입니다.");
+        this.nickname = Objects.requireNonNull(nickname, "닉네임은 필수입니다.");
+        this.password = Objects.requireNonNull(password, "비밀번호는 필수입니다.");
+        this.roles = new HashSet<>(Objects.requireNonNull(roles, "권한 목록은 필수입니다."));
     }
 
     public static User create(String username, String nickname, String password, Set<Role> roles) {
@@ -53,11 +53,11 @@ public class User extends BaseAuditableEntity {
     }
 
     public void update(String nickname, String password, Set<Role> roles) {
-        this.nickname = Objects.requireNonNull(nickname, "nickname must not be null");
+        this.nickname = Objects.requireNonNull(nickname, "닉네임은 필수입니다.");
         if (password != null) {
             this.password = password;
         }
         this.roles.clear();
-        this.roles.addAll(Objects.requireNonNull(roles, "roles must not be null"));
+        this.roles.addAll(Objects.requireNonNull(roles, "권한 목록은 필수입니다."));
     }
 }

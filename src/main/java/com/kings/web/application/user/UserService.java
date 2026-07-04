@@ -27,7 +27,7 @@ public class UserService {
         validate(command);
 
         if (userRepository.existsByUsername(command.username())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "username already exists");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 사용 중인 아이디입니다.");
         }
 
         var user = User.create(
@@ -70,7 +70,7 @@ public class UserService {
         var usernames = validateDeleteCommand(command);
 
         if (userRepository.countByUsernames(usernames) != usernames.size()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다.");
         }
 
         userRepository.deleteAllByUsernames(usernames);
@@ -78,40 +78,40 @@ public class UserService {
 
     private User getByUsername(String username) {
         if (!StringUtils.hasText(username)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "username is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "아이디를 입력해 주세요.");
         }
 
         return userRepository.findByUsernameWithRoles(username)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."));
     }
 
     private void validate(UserCommand command) {
         if (command == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "user is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "사용자 정보를 입력해 주세요.");
         }
         if (!StringUtils.hasText(command.username())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "username is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "아이디를 입력해 주세요.");
         }
         if (!StringUtils.hasText(command.nickname())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "nickname is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "닉네임을 입력해 주세요.");
         }
         if (!StringUtils.hasText(command.password())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "password is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "비밀번호를 입력해 주세요.");
         }
         if (command.roles() != null && command.roles().stream().anyMatch(role -> role == null)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "roles must not contain null");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "권한 목록에 빈 값이 포함될 수 없습니다.");
         }
     }
 
     private void validateUpdateCommand(UserUpdateCommand command) {
         if (command == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "user is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "사용자 정보를 입력해 주세요.");
         }
         if (!StringUtils.hasText(command.nickname())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "nickname is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "닉네임을 입력해 주세요.");
         }
         if (command.roles() != null && command.roles().stream().anyMatch(role -> role == null)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "roles must not contain null");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "권한 목록에 빈 값이 포함될 수 없습니다.");
         }
     }
 
@@ -125,15 +125,15 @@ public class UserService {
 
     private List<String> validateDeleteCommand(UserDeleteCommand command) {
         if (command == null || command.usernames() == null || command.usernames().isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "usernames is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "삭제할 사용자를 선택해 주세요.");
         }
 
         var usernames = command.usernames();
         if (usernames.stream().anyMatch(username -> !StringUtils.hasText(username))) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "username is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "사용자 아이디에 빈 값이 포함될 수 없습니다.");
         }
         if (new HashSet<>(usernames).size() != usernames.size()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "usernames must be unique");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "삭제할 사용자 목록에 중복된 아이디가 있습니다.");
         }
 
         return usernames;

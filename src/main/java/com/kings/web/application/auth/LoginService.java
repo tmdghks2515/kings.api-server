@@ -24,10 +24,10 @@ public class LoginService {
         validate(command);
 
         var user = userRepository.findByUsername(command.username())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid credentials"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 올바르지 않습니다."));
 
         if (!passwordEncoder.matches(command.password(), user.getPassword())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid credentials");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 올바르지 않습니다.");
         }
 
         var accessToken = jwtTokenProvider.generateAccessToken(user);
@@ -41,10 +41,10 @@ public class LoginService {
 
     private void validate(LoginCommand command) {
         if (!StringUtils.hasText(command.username())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "username is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "아이디를 입력해 주세요.");
         }
         if (!StringUtils.hasText(command.password())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "password is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "비밀번호를 입력해 주세요.");
         }
     }
 }

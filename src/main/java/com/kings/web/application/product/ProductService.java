@@ -23,10 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -66,7 +63,7 @@ public class ProductService {
         product.update(command.name(), command.price(), findCategory(command.categoryId()), findBrand(command.brandId()));
         product.replaceOptions(toOptions(product, normalizedOptions(command.options())));
         product.replaceImages(toImages(product, normalizedImages(command.images())));
-        product.replaceDetailImages(toDetailImages(product, normalizedFileResourceIds(command.detailImages())));
+        product.replaceDetailImages(toDetailImages(product, normalizedImageStorageKeys(command.detailImages())));
     }
 
     @Transactional
@@ -75,7 +72,7 @@ public class ProductService {
         var products = productRepository.findAllByCodes(productIds);
 
         if (products.size() != productIds.size()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "product not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "상품을 찾을 수 없습니다.");
         }
 
         var fileResources = collectImageFileResources(products);
@@ -90,14 +87,14 @@ public class ProductService {
 
     private Product getByCode(String code) {
         if (!StringUtils.hasText(code)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "product code is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "상품 코드를 입력해 주세요.");
         }
         if (!ProductCode.isValid(code)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "product code must contain only letters, numbers, hyphen, or underscore");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "상품 코드는 영문, 숫자, 하이픈(-), 밑줄(_)만 사용할 수 있습니다.");
         }
 
         return productRepository.findByCode(code)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "product not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "상품을 찾을 수 없습니다."));
     }
 
     private Category findCategory(Long categoryId) {
@@ -106,7 +103,7 @@ public class ProductService {
         }
 
         return categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "category not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "카테고리를 찾을 수 없습니다."));
     }
 
     private String normalizeKeyword(ProductQuery query) {
@@ -123,45 +120,48 @@ public class ProductService {
         }
 
         return brandRepository.findById(brandId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "brand not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "브랜드를 찾을 수 없습니다."));
     }
 
     private void validateUpdateCommand(String code, ProductCommand command) {
         if (command == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "product is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "상품 정보를 입력해 주세요.");
         }
         if (StringUtils.hasText(command.code()) && !ProductCode.isValid(command.code())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "product code must contain only letters, numbers, hyphen, or underscore");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "상품 코드는 영문, 숫자, 하이픈(-), 밑줄(_)만 사용할 수 있습니다.");
         }
         if (StringUtils.hasText(command.code()) && !Objects.equals(code, command.code())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "product code must not be changed");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "상품 코드는 변경할 수 없습니다.");
         }
         if (!StringUtils.hasText(command.name())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "상품명을 입력해 주세요.");
         }
         if (command.price() != null && command.price() < 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "price must be greater than or equal to 0");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "가격은 0 이상이어야 합니다.");
         }
 
         validateOptions(normalizedOptions(command.options()));
-        validateImages(normalizedImages(command.images()));
-        validateFileResourceIds(normalizedFileResourceIds(command.detailImages()), "detailImages");
+        var images = normalizedImages(command.images());
+        var detailImages = normalizedImageStorageKeys(command.detailImages());
+        validateImages(images);
+        validateImageStorageKeys(detailImages, "detailImages");
+        validateImageStorageKeysExist(collectImageStorageKeys(images, detailImages));
     }
 
     private void validateOptions(List<ProductCommand.ProductOptionCommand> options) {
         var optionNames = new HashSet<String>();
         for (var option : options) {
             if (!StringUtils.hasText(option.name())) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "option name is required");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "옵션명을 입력해 주세요.");
             }
             if (option.price() != null && option.price() < 0) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "option price must be greater than or equal to 0");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "옵션 가격은 0 이상이어야 합니다.");
             }
             if (option.type() == null) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "option type is required");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "옵션 타입을 선택해 주세요.");
             }
             if (!optionNames.add(option.name())) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "option name must be unique");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "옵션명은 중복될 수 없습니다.");
             }
         }
     }
@@ -184,43 +184,37 @@ public class ProductService {
             Product product,
             List<ProductCommand.ProductImageCommand> imageCommands
     ) {
-        var fileResourceById = findFileResourcesById(imageCommands.stream()
-                .map(ProductCommand.ProductImageCommand::fileResourceId)
-                .toList());
-
         return imageCommands.stream()
                 .map(imageCommand -> ProductImage.create(
                         product,
-                        fileResourceById.get(imageCommand.fileResourceId()).getStorageKey(),
+                        imageCommand.imageStorageKey(),
                         imageCommands.indexOf(imageCommand) + 1,
                         imageCommand.main()
                 ))
                 .toList();
     }
 
-    private List<ProductDetailImage> toDetailImages(Product product, List<Long> fileResourceIds) {
-        var fileResourceById = findFileResourcesById(fileResourceIds);
-
-        return fileResourceIds.stream()
-                .map(fileResourceId -> ProductDetailImage.create(
+    private List<ProductDetailImage> toDetailImages(Product product, List<String> imageStorageKeys) {
+        return imageStorageKeys.stream()
+                .map(imageStorageKey -> ProductDetailImage.create(
                         product,
-                        fileResourceById.get(fileResourceId).getStorageKey(),
-                        fileResourceIds.indexOf(fileResourceId) + 1
+                        imageStorageKey,
+                        imageStorageKeys.indexOf(imageStorageKey) + 1
                 ))
                 .toList();
     }
 
     private List<String> validateDeleteCommand(ProductDeleteCommand command) {
         if (command == null || command.productIds() == null || command.productIds().isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "productIds is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "삭제할 상품을 선택해 주세요.");
         }
 
         var productIds = command.productIds();
         if (productIds.stream().anyMatch(productId -> !StringUtils.hasText(productId))) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "productId is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "상품 코드에 빈 값이 포함될 수 없습니다.");
         }
         if (new HashSet<>(productIds).size() != productIds.size()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "productIds must be unique");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "삭제할 상품 목록에 중복된 상품 코드가 있습니다.");
         }
 
         return productIds;
@@ -254,34 +248,28 @@ public class ProductService {
         return options == null ? List.of() : options;
     }
 
-    private List<Long> normalizedFileResourceIds(List<Long> fileResourceIds) {
-        return fileResourceIds == null ? List.of() : fileResourceIds;
+    private List<String> normalizedImageStorageKeys(List<String> imageStorageKeys) {
+        return imageStorageKeys == null ? List.of() : imageStorageKeys;
     }
 
-    private void validateFileResourceIds(List<Long> fileResourceIds, String fieldName) {
-        if (fileResourceIds.stream().anyMatch(fileResourceId -> fileResourceId == null || fileResourceId <= 0)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " must contain valid file ids");
+    private void validateImageStorageKeys(List<String> imageStorageKeys, String fieldName) {
+        if (imageStorageKeys.stream().anyMatch(imageStorageKey -> !StringUtils.hasText(imageStorageKey))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + "에는 올바른 이미지 저장 키만 입력할 수 있습니다.");
         }
-        if (new HashSet<>(fileResourceIds).size() != fileResourceIds.size()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " must be unique");
+        if (new HashSet<>(imageStorageKeys).size() != imageStorageKeys.size()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + "에는 중복된 이미지 저장 키를 입력할 수 없습니다.");
         }
     }
 
-    private Map<Long, FileResource> findFileResourcesById(List<Long> fileResourceIds) {
-        if (fileResourceIds.isEmpty()) {
-            return Map.of();
+    private void validateImageStorageKeysExist(List<String> imageStorageKeys) {
+        if (imageStorageKeys.isEmpty()) {
+            return;
         }
 
-        var fileResources = fileResourceRepository.findAllByIdIn(fileResourceIds);
-        if (fileResources.size() != new HashSet<>(fileResourceIds).size()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "file not found");
+        var fileResources = fileResourceRepository.findAllByStorageKeyIn(imageStorageKeys);
+        if (fileResources.size() != imageStorageKeys.size()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미지 파일을 찾을 수 없습니다.");
         }
-
-        return fileResources.stream()
-                .collect(Collectors.toMap(
-                        FileResource::getId,
-                        Function.identity()
-                ));
     }
 
     private List<ProductCommand.ProductImageCommand> normalizedImages(
@@ -291,22 +279,34 @@ public class ProductService {
     }
 
     private void validateImages(List<ProductCommand.ProductImageCommand> images) {
-        if (images.stream().anyMatch(image -> image == null || image.fileResourceId() == null || image.fileResourceId() <= 0)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "images must contain valid file ids");
+        if (images.stream().anyMatch(image -> image == null || !StringUtils.hasText(image.imageStorageKey()))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "상품 이미지에는 올바른 이미지 저장 키만 입력할 수 있습니다.");
         }
 
-        var fileResourceIds = images.stream()
-                .map(ProductCommand.ProductImageCommand::fileResourceId)
+        var imageStorageKeys = images.stream()
+                .map(ProductCommand.ProductImageCommand::imageStorageKey)
                 .toList();
-        if (new HashSet<>(fileResourceIds).size() != fileResourceIds.size()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "images must be unique");
+        if (new HashSet<>(imageStorageKeys).size() != imageStorageKeys.size()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "상품 이미지에는 중복된 이미지 저장 키를 입력할 수 없습니다.");
         }
 
         var mainCount = images.stream()
                 .filter(ProductCommand.ProductImageCommand::main)
                 .count();
         if (mainCount > 1) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "main image must be unique");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "대표 이미지는 하나만 선택할 수 있습니다.");
         }
+    }
+
+    private List<String> collectImageStorageKeys(
+            List<ProductCommand.ProductImageCommand> images,
+            List<String> detailImages
+    ) {
+        var imageStorageKeys = new HashSet<String>();
+        for (var image : images) {
+            imageStorageKeys.add(image.imageStorageKey());
+        }
+        imageStorageKeys.addAll(detailImages);
+        return List.copyOf(imageStorageKeys);
     }
 }

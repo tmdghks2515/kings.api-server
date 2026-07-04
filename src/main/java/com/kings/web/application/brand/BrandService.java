@@ -26,15 +26,15 @@ public class BrandService {
         validate(command);
 
         if (brandRepository.existsByName(command.name())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "brand name already exists");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 사용 중인 브랜드명입니다.");
         }
 
         return brandRepository.save(Brand.create(
                 command.name(),
                 command.introduce(),
                 command.sortOrder(),
-                findStorageKey(command.logoResourceId(), "logo not found"),
-                findStorageKey(command.mainImageResourceId(), "main image not found")
+                findStorageKey(command.logoResourceId(), "로고 이미지를 찾을 수 없습니다."),
+                findStorageKey(command.mainImageResourceId(), "메인 이미지를 찾을 수 없습니다.")
         )).getId();
     }
 
@@ -59,15 +59,15 @@ public class BrandService {
         validate(command);
 
         if (brandRepository.existsByNameAndIdNot(command.name(), id)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "brand name already exists");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 사용 중인 브랜드명입니다.");
         }
 
         getById(id).update(
                 command.name(),
                 command.introduce(),
                 command.sortOrder(),
-                findStorageKey(command.logoResourceId(), "logo not found"),
-                findStorageKey(command.mainImageResourceId(), "main image not found")
+                findStorageKey(command.logoResourceId(), "로고 이미지를 찾을 수 없습니다."),
+                findStorageKey(command.mainImageResourceId(), "메인 이미지를 찾을 수 없습니다.")
         );
     }
 
@@ -78,7 +78,7 @@ public class BrandService {
 
     private Brand getById(Long id) {
         return brandRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "brand not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "브랜드를 찾을 수 없습니다."));
     }
 
     private String findStorageKey(Long fileResourceId, String notFoundMessage) {
@@ -112,22 +112,22 @@ public class BrandService {
 
     private void validate(BrandCommand command) {
         if (command == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "brand is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "브랜드 정보를 입력해 주세요.");
         }
         if (!StringUtils.hasText(command.name())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "브랜드명을 입력해 주세요.");
         }
         if (command.introduce() != null && command.introduce().length() > 1000) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "introduce must be less than or equal to 1000 characters");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "브랜드 소개는 1000자 이하로 입력해 주세요.");
         }
         if (command.sortOrder() < 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "sortOrder must be greater than or equal to 0");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "정렬 순서는 0 이상이어야 합니다.");
         }
         if (command.logoResourceId() != null && command.logoResourceId() <= 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "logoResourceId must be greater than 0");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "로고 이미지 ID는 0보다 커야 합니다.");
         }
         if (command.mainImageResourceId() != null && command.mainImageResourceId() <= 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "mainImageResourceId must be greater than 0");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "메인 이미지 ID는 0보다 커야 합니다.");
         }
     }
 }

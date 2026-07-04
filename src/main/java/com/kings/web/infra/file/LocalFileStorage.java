@@ -24,7 +24,7 @@ public class LocalFileStorage implements FileStorage {
             Files.createDirectories(targetPath.getParent());
             file.transferTo(targetPath);
         } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "failed to store file", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "파일을 저장하지 못했습니다.", e);
         }
     }
 
@@ -35,7 +35,7 @@ public class LocalFileStorage implements FileStorage {
         try {
             Files.deleteIfExists(targetPath);
         } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "failed to delete file", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "파일을 삭제하지 못했습니다.", e);
         }
     }
 
@@ -44,7 +44,7 @@ public class LocalFileStorage implements FileStorage {
         var targetPath = rootPath.resolve(storageKey).normalize();
 
         if (!targetPath.startsWith(rootPath)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid storage path");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "파일 저장 경로가 올바르지 않습니다.");
         }
 
         return targetPath;

@@ -40,9 +40,9 @@ public class ProductOption extends BaseAuditableEntity {
     private ProductOptionType type;
 
     private ProductOption(Product product, String name, Double price, ProductOptionType type) {
-        this.product = Objects.requireNonNull(product, "product must not be null");
-        this.id = new ProductOptionId(product.getCode(), Objects.requireNonNull(name, "name must not be null"));
-        this.type = Objects.requireNonNull(type, "type must not be null");
+        this.product = Objects.requireNonNull(product, "상품은 필수입니다.");
+        this.id = new ProductOptionId(product.getCode(), Objects.requireNonNull(name, "옵션명은 필수입니다."));
+        this.type = Objects.requireNonNull(type, "옵션 타입은 필수입니다.");
         this.price = price;
     }
 
@@ -52,7 +52,7 @@ public class ProductOption extends BaseAuditableEntity {
 
     public void update(Double price, ProductOptionType type) {
         this.price = price;
-        this.type = Objects.requireNonNull(type, "type must not be null");
+        this.type = Objects.requireNonNull(type, "옵션 타입은 필수입니다.");
     }
 
     public String getProductCode() {
