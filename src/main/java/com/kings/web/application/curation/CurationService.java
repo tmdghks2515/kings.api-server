@@ -12,6 +12,8 @@ import com.kings.web.domain.curation.page.CurationPage;
 import com.kings.web.domain.curation.page.CurationPageRepository;
 import com.kings.web.domain.brand.BrandRepository;
 import com.kings.web.domain.category.CategoryRepository;
+import com.kings.web.domain.file.FileResource;
+import com.kings.web.domain.file.FileResourceRepository;
 import com.kings.web.domain.link.BrandLink;
 import com.kings.web.domain.link.CategoryLink;
 import com.kings.web.domain.link.ImageLink;
@@ -40,6 +42,7 @@ public class CurationService {
     private final BrandRepository brandRepository;
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
+    private final FileResourceRepository fileResourceRepository;
 
     @Transactional
     public Long create(CurationCommand command) {
@@ -53,16 +56,21 @@ public class CurationService {
 
     @Transactional(readOnly = true)
     public List<CurationData> findAll() {
-        return curationRepository.findAll()
+        var curations = curationRepository.findAll()
                 .stream()
                 .sorted(Comparator.comparingInt(Curation::getSortOrder))
-                .map(CurationData::from)
+                .toList();
+        var fileResources = findImageFileResources(curations);
+
+        return curations.stream()
+                .map(curation -> CurationData.from(curation, fileResources))
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public CurationData findById(Long id) {
-        return CurationData.from(getById(id));
+        var curation = getById(id);
+        return CurationData.from(curation, findImageFileResources(List.of(curation)));
     }
 
     @Transactional
@@ -104,6 +112,15 @@ public class CurationService {
     private CurationPage getCurationPage(CurationCommand command) {
         return curationPageRepository.findByType(command.curationPageType())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "큐레이션 페이지 타입을 찾을 수 없습니다."));
+    }
+
+    private List<FileResource> findImageFileResources(List<Curation> curations) {
+        var imageStorageKeys = CurationData.collectImageStorageKeys(curations);
+        if (imageStorageKeys.isEmpty()) {
+            return List.of();
+        }
+
+        return fileResourceRepository.findAllByStorageKeyIn(imageStorageKeys);
     }
 
     private void validate(CurationCommand command) {
@@ -227,12 +244,12 @@ public class CurationService {
         if (productCodes.stream().anyMatch(productCode -> !StringUtils.hasText(productCode))) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + "에는 올바른 상품 코드만 입력할 수 있습니다.");
         }
-        if (new HashSet<>(productCodes).size() != productCodes.size()) {
+        /*if (new HashSet<>(productCodes).size() != productCodes.size()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + "에는 중복된 상품 코드를 입력할 수 없습니다.");
-        }
-        if (productRepository.countByCodes(productCodes) != productCodes.size()) {
+        }*/
+        /*if (productRepository.countByCodes(productCodes) != productCodes.size()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + "에 존재하지 않는 상품 코드가 포함되어 있습니다.");
-        }
+        }*/
     }
 
     private void validateProductCode(String productCode, String fieldName) {

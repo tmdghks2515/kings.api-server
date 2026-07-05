@@ -4,7 +4,7 @@ public record BrandCommand(
         String name,
         String introduce,
         int sortOrder,
-        Long logoResourceId,
-        Long mainImageResourceId
+        String logoStorageKey,
+        String mainImageStorageKey
 ) {
 }

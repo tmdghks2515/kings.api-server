@@ -11,6 +11,8 @@ import com.kings.web.domain.curation.detail.TitledProductsDetail;
 import com.kings.web.domain.curation.page.CurationPage;
 import com.kings.web.domain.curation.page.CurationPageRepository;
 import com.kings.web.domain.curation.page.CurationPageType;
+import com.kings.web.domain.file.FileResource;
+import com.kings.web.domain.file.FileResourceRepository;
 import com.kings.web.domain.link.BrandLink;
 import com.kings.web.domain.link.CategoryLink;
 import com.kings.web.domain.link.Link;
@@ -38,6 +40,7 @@ public class CurationPageService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final BrandRepository brandRepository;
+    private final FileResourceRepository fileResourceRepository;
 
     @Transactional(readOnly = true)
     public List<CurationPageData> findAll() {
@@ -51,14 +54,20 @@ public class CurationPageService {
     @Transactional(readOnly = true)
     public CurationPageDetailData findById(Long id) {
         return curationPageRepository.findById(id)
-                .map(CurationPageDetailData::from)
+                .map(curationPage -> CurationPageDetailData.from(
+                        curationPage,
+                        findImageFileResources(curationPage.getCurations())
+                ))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "큐레이션 페이지를 찾을 수 없습니다."));
     }
 
     @Transactional(readOnly = true)
     public CurationPageDetailData findByType(CurationPageType type) {
         return curationPageRepository.findByType(type)
-                .map(CurationPageDetailData::from)
+                .map(curationPage -> CurationPageDetailData.from(
+                        curationPage,
+                        findImageFileResources(curationPage.getCurations())
+                ))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "큐레이션 페이지를 찾을 수 없습니다."));
     }
 
@@ -83,6 +92,15 @@ public class CurationPageService {
                 categoryById,
                 brandById
         );
+    }
+
+    private List<FileResource> findImageFileResources(List<Curation> curations) {
+        var imageStorageKeys = CurationData.collectImageStorageKeys(curations);
+        if (imageStorageKeys.isEmpty()) {
+            return List.of();
+        }
+
+        return fileResourceRepository.findAllByStorageKeyIn(imageStorageKeys);
     }
 
     private List<String> collectProductCodes(List<Curation> curations) {

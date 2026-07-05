@@ -4,6 +4,7 @@ import com.kings.web.application.category.CategoryCommand;
 import com.kings.web.application.category.CategoryData;
 import com.kings.web.application.category.CategoryDeleteCommand;
 import com.kings.web.application.category.CategoryService;
+import com.kings.web.infra.web.NoAuthentication;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,11 +28,13 @@ public class CategoryController {
         return categoryService.create(command);
     }
 
+    @NoAuthentication
     @GetMapping
     public List<CategoryData> findAll() {
         return categoryService.findAll();
     }
 
+    @NoAuthentication
     @GetMapping("/{id}")
     public CategoryData findById(@PathVariable Long id) {
         return categoryService.findById(id);

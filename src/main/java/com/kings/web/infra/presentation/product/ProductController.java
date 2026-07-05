@@ -6,6 +6,7 @@ import com.kings.web.application.product.ProductData;
 import com.kings.web.application.product.ProductDeleteCommand;
 import com.kings.web.application.product.ProductQuery;
 import com.kings.web.application.product.ProductService;
+import com.kings.web.infra.web.NoAuthentication;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -31,11 +32,13 @@ public class ProductController {
         createProductService.create(command);
     }
 
+    @NoAuthentication
     @GetMapping
     public List<ProductData> findAll(@ModelAttribute ProductQuery query) {
         return productService.findAll(query);
     }
 
+    @NoAuthentication
     @GetMapping("/{code}")
     public ProductData findByCode(@PathVariable String code) {
         return productService.findByCode(code);

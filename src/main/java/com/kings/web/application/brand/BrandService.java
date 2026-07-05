@@ -33,8 +33,8 @@ public class BrandService {
                 command.name(),
                 command.introduce(),
                 command.sortOrder(),
-                findStorageKey(command.logoResourceId(), "로고 이미지를 찾을 수 없습니다."),
-                findStorageKey(command.mainImageResourceId(), "메인 이미지를 찾을 수 없습니다.")
+                normalizeStorageKey(command.logoStorageKey()),
+                normalizeStorageKey(command.mainImageStorageKey())
         )).getId();
     }
 
@@ -66,8 +66,8 @@ public class BrandService {
                 command.name(),
                 command.introduce(),
                 command.sortOrder(),
-                findStorageKey(command.logoResourceId(), "로고 이미지를 찾을 수 없습니다."),
-                findStorageKey(command.mainImageResourceId(), "메인 이미지를 찾을 수 없습니다.")
+                normalizeStorageKey(command.logoStorageKey()),
+                normalizeStorageKey(command.mainImageStorageKey())
         );
     }
 
@@ -79,16 +79,6 @@ public class BrandService {
     private Brand getById(Long id) {
         return brandRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "브랜드를 찾을 수 없습니다."));
-    }
-
-    private String findStorageKey(Long fileResourceId, String notFoundMessage) {
-        if (fileResourceId == null) {
-            return null;
-        }
-
-        return fileResourceRepository.findById(fileResourceId)
-                .map(FileResource::getStorageKey)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, notFoundMessage));
     }
 
     private List<FileResource> findBrandFileResources(List<Brand> brands) {
@@ -123,11 +113,22 @@ public class BrandService {
         if (command.sortOrder() < 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "정렬 순서는 0 이상이어야 합니다.");
         }
-        if (command.logoResourceId() != null && command.logoResourceId() <= 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "로고 이미지 ID는 0보다 커야 합니다.");
+        validateStorageKey(command.logoStorageKey(), "로고 이미지를 찾을 수 없습니다.");
+        validateStorageKey(command.mainImageStorageKey(), "메인 이미지를 찾을 수 없습니다.");
+    }
+
+    private void validateStorageKey(String storageKey, String notFoundMessage) {
+        var normalizedStorageKey = normalizeStorageKey(storageKey);
+        if (normalizedStorageKey == null) {
+            return;
         }
-        if (command.mainImageResourceId() != null && command.mainImageResourceId() <= 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "메인 이미지 ID는 0보다 커야 합니다.");
+
+        if (!fileResourceRepository.existsByStorageKey(normalizedStorageKey)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, notFoundMessage);
         }
+    }
+
+    private String normalizeStorageKey(String storageKey) {
+        return StringUtils.hasText(storageKey) ? storageKey.trim() : null;
     }
 }
