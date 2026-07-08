@@ -5,6 +5,7 @@ public enum CurationType {
     NORMAL_BANNER,
     CATEGORIES,
     TITLED_PRODUCTS,
-    CATEGORY_PRODUCTS,
+    IMAGE_PRODUCTS,
+    BRAND_SHORTCUTS,
     ;
 }

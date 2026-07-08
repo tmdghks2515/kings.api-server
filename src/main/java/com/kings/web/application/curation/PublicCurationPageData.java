@@ -4,8 +4,9 @@ import com.kings.web.domain.brand.Brand;
 import com.kings.web.domain.category.Category;
 import com.kings.web.domain.curation.Curation;
 import com.kings.web.domain.curation.CurationType;
+import com.kings.web.domain.curation.detail.BrandShortcutsDetail;
 import com.kings.web.domain.curation.detail.CategoriesDetail;
-import com.kings.web.domain.curation.detail.CategoryProductsDetail;
+import com.kings.web.domain.curation.detail.ImageProductsDetail;
 import com.kings.web.domain.curation.detail.TitledProductsDetail;
 import com.kings.web.domain.curation.page.CurationPage;
 import com.kings.web.domain.curation.page.CurationPageType;
@@ -94,9 +95,17 @@ public record PublicCurationPageData(
     ) {
     }
 
-    public record CategoryProductsPublicDetail(
-            PublicCategoryData category,
+    public record ImageProductsPublicDetail(
+            String imageStorageKey,
+            String link,
+            String title,
+            String subTitle,
             List<PublicProductData> products
+    ) {
+    }
+
+    public record BrandShortcutsPublicDetail(
+            List<PublicBrandData> brands
     ) {
     }
 
@@ -154,27 +163,15 @@ public record PublicCurationPageData(
     public record PublicBrandData(
             Long id,
             String name,
-            String link
+            String link,
+            String logoStorageKey
     ) {
         public static PublicBrandData from(Brand brand) {
             return new PublicBrandData(
                     brand.getId(),
                     brand.getName(),
-                    new BrandLink(String.valueOf(brand.getId())).getLink()
-            );
-        }
-    }
-
-    public record PublicCategoryData(
-            Long id,
-            String name,
-            String link
-    ) {
-        public static PublicCategoryData from(Category category) {
-            return new PublicCategoryData(
-                    category.getId(),
-                    category.getName(),
-                    new CategoryLink(String.valueOf(category.getId())).getLink()
+                    new BrandLink(String.valueOf(brand.getId())).getLink(),
+                    brand.getLogoStorageKey()
             );
         }
     }
@@ -209,13 +206,15 @@ public record PublicCurationPageData(
             );
         }
 
-        if (detail instanceof CategoryProductsDetail categoryProductsDetail) {
-            var categoryId = categoryProductsDetail.getCategoryId();
-            var category = categoryId == null ? null : categoryById.get(categoryId);
-            return new CategoryProductsPublicDetail(
-                    category == null ? null : PublicCategoryData.from(category),
+        if (detail instanceof ImageProductsDetail imageProductsDetail) {
+            var link = imageProductsDetail.getLink();
+            return new ImageProductsPublicDetail(
+                    imageProductsDetail.getImageStorageKey(),
+                    link == null ? null : link.getLink(),
+                    imageProductsDetail.getTitle(),
+                    imageProductsDetail.getSubTitle(),
                     toProducts(
-                            categoryProductsDetail.getProductCodes(),
+                            imageProductsDetail.getProductCodes(),
                             productByCode,
                             mainImageStorageKeyByProductCode,
                             optionNamesByProductCode
@@ -223,7 +222,28 @@ public record PublicCurationPageData(
             );
         }
 
+        if (detail instanceof BrandShortcutsDetail brandShortcutsDetail) {
+            return new BrandShortcutsPublicDetail(
+                    toBrands(brandShortcutsDetail.getBrandIds(), brandById)
+            );
+        }
+
         return detail;
+    }
+
+    private static List<PublicBrandData> toBrands(
+            List<Long> brandIds,
+            Map<Long, Brand> brandById
+    ) {
+        if (brandIds == null) {
+            return List.of();
+        }
+
+        return brandIds.stream()
+                .map(brandById::get)
+                .filter(Objects::nonNull)
+                .map(PublicBrandData::from)
+                .toList();
     }
 
     private static List<PublicProductData> toProducts(

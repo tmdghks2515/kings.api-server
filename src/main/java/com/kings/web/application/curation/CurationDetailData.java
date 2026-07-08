@@ -1,10 +1,11 @@
 package com.kings.web.application.curation;
 
 import com.kings.web.application.file.FileResourceData;
+import com.kings.web.domain.curation.detail.BrandShortcutsDetail;
 import com.kings.web.domain.curation.detail.CategoriesDetail;
-import com.kings.web.domain.curation.detail.CategoryProductsDetail;
 import com.kings.web.domain.curation.detail.CurationDetail;
 import com.kings.web.domain.curation.detail.CurationItem;
+import com.kings.web.domain.curation.detail.ImageProductsDetail;
 import com.kings.web.domain.curation.detail.MainBannerDetail;
 import com.kings.web.domain.curation.detail.NormalBannerDetail;
 import com.kings.web.domain.curation.detail.TitledProductsDetail;
@@ -46,11 +47,20 @@ public interface CurationDetailData {
                     titledProductsDetail.getProductCodes()
             );
         }
-        if (detail instanceof CategoryProductsDetail categoryProductsDetail) {
-            return new CategoryProductsDetailData(
-                    "CategoryProductsDetail",
-                    categoryProductsDetail.getCategoryId(),
-                    categoryProductsDetail.getProductCodes()
+        if (detail instanceof ImageProductsDetail imageProductsDetail) {
+            return new ImageProductsDetailData(
+                    "ImageProductsDetail",
+                    toFileResourceData(imageProductsDetail.getImageStorageKey(), fileResourceByStorageKey),
+                    imageProductsDetail.getLink(),
+                    imageProductsDetail.getTitle(),
+                    imageProductsDetail.getSubTitle(),
+                    imageProductsDetail.getProductCodes()
+            );
+        }
+        if (detail instanceof BrandShortcutsDetail brandShortcutsDetail) {
+            return new BrandShortcutsDetailData(
+                    "BrandShortcutsDetail",
+                    brandShortcutsDetail.getBrandIds()
             );
         }
 
@@ -66,6 +76,10 @@ public interface CurationDetailData {
         }
         if (detail instanceof CategoriesDetail categoriesDetail) {
             return collectImageStorageKeys(categoriesDetail.getItems());
+        }
+        if (detail instanceof ImageProductsDetail imageProductsDetail
+                && imageProductsDetail.getImageStorageKey() != null) {
+            return List.of(imageProductsDetail.getImageStorageKey());
         }
 
         return List.of();
@@ -152,10 +166,19 @@ public interface CurationDetailData {
     ) implements CurationDetailData {
     }
 
-    record CategoryProductsDetailData(
+    record ImageProductsDetailData(
             String type,
-            Long categoryId,
+            FileResourceData imageStorageKey,
+            Link link,
+            String title,
+            String subTitle,
             List<String> productCodes
+    ) implements CurationDetailData {
+    }
+
+    record BrandShortcutsDetailData(
+            String type,
+            List<Long> brandIds
     ) implements CurationDetailData {
     }
 

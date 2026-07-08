@@ -2,9 +2,10 @@ package com.kings.web.application.curation;
 
 import com.kings.web.domain.curation.Curation;
 import com.kings.web.domain.curation.CurationRepository;
+import com.kings.web.domain.curation.detail.BrandShortcutsDetail;
 import com.kings.web.domain.curation.detail.CategoriesDetail;
-import com.kings.web.domain.curation.detail.CategoryProductsDetail;
 import com.kings.web.domain.curation.detail.CurationItem;
+import com.kings.web.domain.curation.detail.ImageProductsDetail;
 import com.kings.web.domain.curation.detail.MainBannerDetail;
 import com.kings.web.domain.curation.detail.NormalBannerDetail;
 import com.kings.web.domain.curation.detail.TitledProductsDetail;
@@ -17,6 +18,7 @@ import com.kings.web.domain.file.FileResourceRepository;
 import com.kings.web.domain.link.BrandLink;
 import com.kings.web.domain.link.CategoryLink;
 import com.kings.web.domain.link.ImageLink;
+import com.kings.web.domain.link.Link;
 import com.kings.web.domain.link.ProductDetailLink;
 import com.kings.web.domain.product.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -190,12 +192,24 @@ public class CurationService {
                 }
                 validateProductCodes(detail.getProductCodes(), "detail.productCodes");
             }
-            case CATEGORY_PRODUCTS -> {
-                if (!(command.detail() instanceof CategoryProductsDetail detail)) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "카테고리 상품 상세 정보 형식이 올바르지 않습니다.");
+            case IMAGE_PRODUCTS -> {
+                if (!(command.detail() instanceof ImageProductsDetail detail)) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미지 상품 상세 정보 형식이 올바르지 않습니다.");
                 }
-                validateCategoryId(detail.getCategoryId(), "detail.categoryId");
+                if (!StringUtils.hasText(detail.getImageStorageKey())) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "detail.imageStorageKey을(를) 입력해 주세요.");
+                }
+                validateLink(detail.getLink(), "detail.link");
+                if (!StringUtils.hasText(detail.getTitle())) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "큐레이션 상세 제목을 입력해 주세요.");
+                }
                 validateProductCodes(detail.getProductCodes(), "detail.productCodes");
+            }
+            case BRAND_SHORTCUTS -> {
+                if (!(command.detail() instanceof BrandShortcutsDetail detail)) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "브랜드 바로가기 상세 정보 형식이 올바르지 않습니다.");
+                }
+                validateBrandIds(detail.getBrandIds(), "detail.brandIds");
             }
         }
     }
@@ -218,6 +232,10 @@ public class CurationService {
 
     private void validateLink(ImageLink item, String fieldName) {
         var link = item.getLink();
+        validateLink(link, fieldName);
+    }
+
+    private void validateLink(Link link, String fieldName) {
         if (link == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + "을(를) 입력해 주세요.");
         }
@@ -287,6 +305,20 @@ public class CurationService {
         }
         if (brandRepository.findById(brandId).isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + "을(를) 찾을 수 없습니다.");
+        }
+    }
+
+    private void validateBrandIds(List<Long> brandIds, String fieldName) {
+        validateList(brandIds, fieldName);
+
+        if (brandIds.stream().anyMatch(brandId -> brandId == null || brandId <= 0)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + "에는 올바른 브랜드 ID만 입력할 수 있습니다.");
+        }
+        if (new HashSet<>(brandIds).size() != brandIds.size()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + "에는 중복된 브랜드 ID를 입력할 수 없습니다.");
+        }
+        if (brandRepository.findAllByIds(brandIds).size() != brandIds.size()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + "에 존재하지 않는 브랜드 ID가 포함되어 있습니다.");
         }
     }
 

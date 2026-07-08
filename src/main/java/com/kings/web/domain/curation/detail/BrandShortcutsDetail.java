@@ -13,7 +13,6 @@ import java.util.List;
 @Builder
 @Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CategoryProductsDetail implements CurationDetail {
-    private Long categoryId;
-    private List<String> productCodes;
+public class BrandShortcutsDetail implements CurationDetail {
+    private List<Long> brandIds;
 }

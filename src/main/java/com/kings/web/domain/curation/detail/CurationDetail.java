@@ -9,7 +9,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(value = NormalBannerDetail.class, name = "NormalBannerDetail"),
         @JsonSubTypes.Type(value = CategoriesDetail.class, name = "CategoriesDetail"),
         @JsonSubTypes.Type(value = TitledProductsDetail.class, name = "TitledProductsDetail"),
-        @JsonSubTypes.Type(value = CategoryProductsDetail.class, name = "CategoryProductsDetail"),
+        @JsonSubTypes.Type(value = ImageProductsDetail.class, name = "ImageProductsDetail"),
+        @JsonSubTypes.Type(value = BrandShortcutsDetail.class, name = "BrandShortcutsDetail"),
 })
 public interface CurationDetail {
 }

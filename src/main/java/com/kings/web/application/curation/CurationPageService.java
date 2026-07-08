@@ -5,8 +5,9 @@ import com.kings.web.domain.brand.BrandRepository;
 import com.kings.web.domain.category.Category;
 import com.kings.web.domain.category.CategoryRepository;
 import com.kings.web.domain.curation.Curation;
+import com.kings.web.domain.curation.detail.BrandShortcutsDetail;
 import com.kings.web.domain.curation.detail.CategoriesDetail;
-import com.kings.web.domain.curation.detail.CategoryProductsDetail;
+import com.kings.web.domain.curation.detail.ImageProductsDetail;
 import com.kings.web.domain.curation.detail.TitledProductsDetail;
 import com.kings.web.domain.curation.page.CurationPage;
 import com.kings.web.domain.curation.page.CurationPageRepository;
@@ -111,9 +112,11 @@ public class CurationPageService {
                     && titledProductsDetail.getProductCodes() != null) {
                 productCodes.addAll(titledProductsDetail.getProductCodes());
             }
-            if (detail instanceof CategoryProductsDetail categoryProductsDetail
-                    && categoryProductsDetail.getProductCodes() != null) {
-                productCodes.addAll(categoryProductsDetail.getProductCodes());
+            if (detail instanceof ImageProductsDetail imageProductsDetail) {
+                if (imageProductsDetail.getProductCodes() != null) {
+                    productCodes.addAll(imageProductsDetail.getProductCodes());
+                }
+                addProductCode(productCodes, imageProductsDetail.getLink());
             }
             if (detail instanceof CategoriesDetail categoriesDetail && categoriesDetail.getItems() != null) {
                 for (var item : categoriesDetail.getItems()) {
@@ -131,9 +134,8 @@ public class CurationPageService {
         var categoryIds = new LinkedHashSet<Long>();
         for (var curation : curations) {
             var detail = curation.getDetail();
-            if (detail instanceof CategoryProductsDetail categoryProductsDetail
-                    && categoryProductsDetail.getCategoryId() != null) {
-                categoryIds.add(categoryProductsDetail.getCategoryId());
+            if (detail instanceof ImageProductsDetail imageProductsDetail) {
+                addCategoryId(categoryIds, imageProductsDetail.getLink());
             }
             if (detail instanceof CategoriesDetail categoriesDetail && categoriesDetail.getItems() != null) {
                 for (var item : categoriesDetail.getItems()) {
@@ -150,6 +152,13 @@ public class CurationPageService {
         var brandIds = new LinkedHashSet<Long>();
         for (var curation : curations) {
             var detail = curation.getDetail();
+            if (detail instanceof BrandShortcutsDetail brandShortcutsDetail
+                    && brandShortcutsDetail.getBrandIds() != null) {
+                brandIds.addAll(brandShortcutsDetail.getBrandIds());
+            }
+            if (detail instanceof ImageProductsDetail imageProductsDetail) {
+                addBrandId(brandIds, imageProductsDetail.getLink());
+            }
             if (detail instanceof CategoriesDetail categoriesDetail && categoriesDetail.getItems() != null) {
                 for (var item : categoriesDetail.getItems()) {
                     if (item != null) {
