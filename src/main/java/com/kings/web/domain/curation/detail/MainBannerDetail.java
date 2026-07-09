@@ -1,6 +1,7 @@
 package com.kings.web.domain.curation.detail;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.kings.web.domain.link.ImageLink;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,5 +15,5 @@ import java.util.List;
 @Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MainBannerDetail implements CurationDetail {
-    private List<CurationItem> items;
+    private List<ImageLink> items;
 }

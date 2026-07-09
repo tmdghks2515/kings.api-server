@@ -4,7 +4,6 @@ import com.kings.web.domain.curation.Curation;
 import com.kings.web.domain.curation.CurationRepository;
 import com.kings.web.domain.curation.detail.BrandShortcutsDetail;
 import com.kings.web.domain.curation.detail.CategoriesDetail;
-import com.kings.web.domain.curation.detail.CurationItem;
 import com.kings.web.domain.curation.detail.ImageProductsDetail;
 import com.kings.web.domain.curation.detail.MainBannerDetail;
 import com.kings.web.domain.curation.detail.NormalBannerDetail;
@@ -169,13 +168,13 @@ public class CurationService {
                 if (!(command.detail() instanceof MainBannerDetail detail)) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "메인 배너 상세 정보 형식이 올바르지 않습니다.");
                 }
-                validateCurationItems(detail.getItems(), "detail.items");
+                validateImageLinks(detail.getItems(), "detail.items");
             }
             case NORMAL_BANNER -> {
                 if (!(command.detail() instanceof NormalBannerDetail detail)) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "일반 배너 상세 정보 형식이 올바르지 않습니다.");
                 }
-                validateCurationItems(detail.getItems(), "detail.items");
+                validateImageLinks(detail.getItems(), "detail.items");
             }
             case CATEGORIES -> {
                 if (!(command.detail() instanceof CategoriesDetail detail)) {
@@ -212,11 +211,6 @@ public class CurationService {
                 validateBrandIds(detail.getBrandIds(), "detail.brandIds");
             }
         }
-    }
-
-    private void validateCurationItems(List<CurationItem> items, String fieldName) {
-        validateList(items, fieldName);
-        validateImageLinks(items.stream().map(item -> (ImageLink) item).toList(), fieldName);
     }
 
     private void validateImageLinks(List<? extends ImageLink> items, String fieldName) {

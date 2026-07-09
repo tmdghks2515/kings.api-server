@@ -45,13 +45,14 @@ public interface ProductJpaRepository extends JpaRepository<Product, String> {
             left join fetch product.category
             left join fetch product.brand
             where (:keyword is null or product.code = :keyword or product.name like concat('%', :keyword, '%'))
-              and (:categoryId is null or product.category.id = :categoryId)
+              and (:categoryFilter = false or product.category.id in :categoryIds)
               and (:brandId is null or product.brand.id = :brandId)
             order by product.createdAt desc
             """)
     List<Product> search(
             @Param("keyword") String keyword,
-            @Param("categoryId") Long categoryId,
+            @Param("categoryFilter") boolean categoryFilter,
+            @Param("categoryIds") List<Long> categoryIds,
             @Param("brandId") Long brandId
     );
 

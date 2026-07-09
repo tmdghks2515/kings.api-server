@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -39,7 +40,7 @@ public class ProductService {
     public List<ProductData> findAll(ProductQuery query) {
         var products = productRepository.findAll(
                 normalizeKeyword(query),
-                query == null ? null : query.categoryId(),
+                resolveCategoryIds(query),
                 query == null ? null : query.brandId()
         );
         var fileResources = findImageFileResources(products);
@@ -112,6 +113,32 @@ public class ProductService {
         }
 
         return query.keyword().trim();
+    }
+
+    private List<Long> resolveCategoryIds(ProductQuery query) {
+        if (query == null || query.categoryId() == null) {
+            return null;
+        }
+
+        var categoryIds = new LinkedHashSet<Long>();
+        var queue = new ArrayDeque<Long>();
+        categoryIds.add(query.categoryId());
+        queue.add(query.categoryId());
+
+        var categories = categoryRepository.findAll();
+        while (!queue.isEmpty()) {
+            var parentCategoryId = queue.removeFirst();
+            for (var category : categories) {
+                var parentCategory = category.getParentCategory();
+                if (parentCategory != null && Objects.equals(parentCategory.getId(), parentCategoryId)) {
+                    if (categoryIds.add(category.getId())) {
+                        queue.add(category.getId());
+                    }
+                }
+            }
+        }
+
+        return List.copyOf(categoryIds);
     }
 
     private Brand findBrand(Long brandId) {

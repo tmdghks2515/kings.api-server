@@ -4,7 +4,6 @@ import com.kings.web.application.file.FileResourceData;
 import com.kings.web.domain.curation.detail.BrandShortcutsDetail;
 import com.kings.web.domain.curation.detail.CategoriesDetail;
 import com.kings.web.domain.curation.detail.CurationDetail;
-import com.kings.web.domain.curation.detail.CurationItem;
 import com.kings.web.domain.curation.detail.ImageProductsDetail;
 import com.kings.web.domain.curation.detail.MainBannerDetail;
 import com.kings.web.domain.curation.detail.NormalBannerDetail;
@@ -25,13 +24,13 @@ public interface CurationDetailData {
         if (detail instanceof MainBannerDetail mainBannerDetail) {
             return new MainBannerDetailData(
                     "MainBannerDetail",
-                    toCurationItemData(mainBannerDetail.getItems(), fileResourceByStorageKey)
+                    toImageLinkData(mainBannerDetail.getItems(), fileResourceByStorageKey)
             );
         }
         if (detail instanceof NormalBannerDetail normalBannerDetail) {
             return new NormalBannerDetailData(
                     "NormalBannerDetail",
-                    toCurationItemData(normalBannerDetail.getItems(), fileResourceByStorageKey)
+                    toImageLinkData(normalBannerDetail.getItems(), fileResourceByStorageKey)
             );
         }
         if (detail instanceof CategoriesDetail categoriesDetail) {
@@ -97,25 +96,6 @@ public interface CurationDetailData {
                 .toList();
     }
 
-    private static List<CurationItemData> toCurationItemData(
-            List<CurationItem> items,
-            Map<String, FileResource> fileResourceByStorageKey
-    ) {
-        if (items == null) {
-            return List.of();
-        }
-
-        return items.stream()
-                .filter(item -> item != null)
-                .map(item -> new CurationItemData(
-                        item.getTitle(),
-                        item.getDescription(),
-                        toFileResourceData(item.getImageStorageKey(), fileResourceByStorageKey),
-                        item.getLink()
-                ))
-                .toList();
-    }
-
     private static List<ImageLinkData> toImageLinkData(
             List<ImageLink> items,
             Map<String, FileResource> fileResourceByStorageKey
@@ -143,13 +123,13 @@ public interface CurationDetailData {
 
     record MainBannerDetailData(
             String type,
-            List<CurationItemData> items
+            List<ImageLinkData> items
     ) implements CurationDetailData {
     }
 
     record NormalBannerDetailData(
             String type,
-            List<CurationItemData> items
+            List<ImageLinkData> items
     ) implements CurationDetailData {
     }
 
@@ -180,14 +160,6 @@ public interface CurationDetailData {
             String type,
             List<Long> brandIds
     ) implements CurationDetailData {
-    }
-
-    record CurationItemData(
-            String title,
-            String description,
-            FileResourceData imageStorageKey,
-            Link link
-    ) {
     }
 
     record ImageLinkData(
