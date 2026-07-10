@@ -28,6 +28,7 @@ public class BrandController {
         return brandService.create(command);
     }
 
+    @NoAuthentication
     @GetMapping
     public List<BrandData> findAll() {
         return brandService.findAll();
