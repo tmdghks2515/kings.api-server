@@ -1,0 +1,23 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  datasource:
+    url: jdbc:mariadb://localhost:3306/kings?useUnicode=true&characterEncoding=utf8
+    username: kings
+    password: ${DB_PASSWORD:kings}
+
+file:
+  storage:
+    path: ./files
+
+web:
+  cors:
+    allowed-origins:
+      - http://localhost:3001
+      - http://localhost:3002
+
+logging:
+  level:
+    org.hibernate.SQL: debug

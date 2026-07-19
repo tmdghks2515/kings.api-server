@@ -14,11 +14,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class CorsConfig implements WebMvcConfigurer {
 
     private final FileStorageProperties fileStorageProperties;
+    private final CorsProperties corsProperties;
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOriginPatterns("*")
+                .allowedOrigins(corsProperties.getAllowedOrigins().toArray(String[]::new))
                 .allowedMethods(
                         HttpMethod.GET.name(),
                         HttpMethod.POST.name(),

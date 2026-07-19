@@ -6,8 +6,8 @@ spring:
     name: kings
 
   datasource:
-    url: jdbc:mariadb://localhost:3306/kings?useUnicode=true&characterEncoding=utf8
-    username: kings
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.mariadb.jdbc.Driver
 
@@ -36,6 +36,14 @@ spring:
 file:
   storage:
     path: ${FILE_STORAGE_PATH:./files}
+
+web:
+  cors:
+    allowed-origins:
+      - https://thekingscompany.co.kr
+      - https://admin.thekingscompany.co.kr
+      - https://www.thekingscompany.co.kr
+      - https://www.admin.thekingscompany.co.kr
 
 logging:
   level:
